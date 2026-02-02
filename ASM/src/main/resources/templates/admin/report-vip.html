@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <h3 class="text-primary mb-3">TOP 10 KHÁCH HÀNG VIP</h3>
+            <div class="alert alert-success">Thống kê những khách hàng mua nhiều nhất năm 2026</div>
+            
+            <table class="table table-bordered table-striped bg-white">
+                <thead class="bg-warning text-dark">
+                    <tr><th>Hạng</th><th>Khách hàng</th><th>Tổng tiền đã mua</th><th>Ngày tham gia</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td><strong>Nguyễn Văn Đại Gia</strong></td><td>500.000.000 đ</td><td>01/01/2025</td></tr>
+                    <tr><td>2</td><td>Trần Thị Phú Bà</td><td>250.000.000 đ</td><td>15/06/2025</td></tr>
+                    <tr><td>3</td><td>Lê Văn Chơi</td><td>120.000.000 đ</td><td>20/11/2025</td></tr>
+                </tbody>
+            </table>
+        </main>
+    </body>
+</html>

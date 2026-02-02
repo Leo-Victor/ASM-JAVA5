@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="card shadow border-0">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-megaphone-fill"></i> GỬI EMAIL MARKETING / KHUYẾN MÃI</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <div th:if="${message != null}" class="alert alert-success">[[${message}]]</div>
+                    <div th:if="${error != null}" class="alert alert-danger">[[${error}]]</div>
+                    
+                    <form action="/admin/marketing/send" method="post" enctype="multipart/form-data">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Gửi đến:</label>
+                            <select name="to" class="form-select">
+                                <option value="all" class="fw-bold text-danger">📢 TẤT CẢ KHÁCH HÀNG (Trừ Admin)</option>
+                                <option disabled>--------------------------------</option>
+                                <th:block th:each="user : ${users}">
+                                    <option th:if="${!user.admin}" th:value="${user.email}" th:text="${user.fullname + ' (' + user.email + ')'}"></option>
+                                </th:block>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tiêu đề Email:</label>
+                            <input type="text" name="subject" class="form-control" placeholder="Ví dụ: Siêu Sale 50% - Mừng năm mới..." required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ảnh Banner khuyến mãi (Đính kèm):</label>
+                            <input type="file" name="file" class="form-control" accept="image/*">
+                            <div class="form-text">Nên chọn ảnh đẹp, dung lượng nhẹ (< 5MB) để gửi nhanh hơn.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nội dung chi tiết:</label>
+                            <textarea name="body" class="form-control" rows="8" placeholder="Nhập nội dung quảng cáo..." required></textarea>
+                        </div>
+                        
+                        <button class="btn btn-primary px-4"><i class="bi bi-send-fill"></i> Gửi ngay</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

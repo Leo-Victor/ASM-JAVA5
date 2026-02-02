@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">QUẢN LÝ KHÁCH HÀNG</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/customer/index}" method="post" th:object="${item}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Tên đăng nhập (Username)</label>
+                                <input th:field="*{username}" class="form-control" required placeholder="Nhập username">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label>Mật khẩu</label>
+                                <input th:field="*{password}" type="password" class="form-control" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label>Họ và tên</label>
+                                <input th:field="*{fullname}" class="form-control" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label>Email</label>
+                                <input th:field="*{email}" type="email" class="form-control" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label>Vai trò</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input th:field="*{admin}" class="form-check-input" type="radio" value="false" checked>
+                                    <label class="form-check-label">Khách hàng</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input th:field="*{admin}" class="form-check-input" type="radio" value="true">
+                                    <label class="form-check-label text-danger fw-bold">Admin</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label>Trạng thái</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input th:field="*{activated}" class="form-check-input" type="radio" value="true" checked>
+                                    <label class="form-check-label">Kích hoạt</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input th:field="*{activated}" class="form-check-input" type="radio" value="false">
+                                    <label class="form-check-label">Khóa</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <button th:formaction="@{/admin/customer/create}" class="btn btn-primary">Thêm mới</button>
+                            <button th:formaction="@{/admin/customer/update}" class="btn btn-success">Cập nhật</button>
+                            <a th:href="@{/admin/customer/index}" class="btn btn-secondary">Làm mới</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow border-0">
+                <div class="card-header bg-secondary text-white">DANH SÁCH TÀI KHOẢN</div>
+                <div class="card-body">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Username</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Vai trò</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${items}">
+                                <td th:text="${c.username}"></td>
+                                <td th:text="${c.fullname}"></td>
+                                <td th:text="${c.email}"></td>
+                                <td>
+                                    <span th:if="${c.admin}" class="badge bg-danger">Admin</span>
+                                    <span th:unless="${c.admin}" class="badge bg-info">User</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{|/admin/customer/edit/${c.username}|}" class="btn btn-sm btn-info">Sửa</a>
+                                    <a th:href="@{|/admin/customer/delete/${c.username}|}" class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Bạn có chắc muốn xóa tài khoản này?');">Xóa</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

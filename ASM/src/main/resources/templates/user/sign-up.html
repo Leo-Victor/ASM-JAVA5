@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/layout/index :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="card shadow-lg border-0 rounded-3">
+                            
+                            <div class="card-header bg-success text-white text-center py-3">
+                                <h4 class="mb-0 fw-bold text-uppercase">Đăng Ký Thành Viên</h4>
+                            </div>
+                            
+                            <div class="card-body p-4">
+                                
+                                <div th:if="${message != null}" class="alert alert-info text-center">
+                                    <i class="bi bi-info-circle-fill"></i> [[${message}]]
+                                </div>
+                                
+                                <form action="/account/sign-up" method="post" th:object="${user}">
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-person-badge-fill"></i></span>
+                                            <input type="text" class="form-control" th:field="*{username}" required placeholder="Ví dụ: leo123">
+                                        </div>
+                                        <small class="text-muted fst-italic">Dùng để đăng nhập, viết liền không dấu.</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Mật khẩu <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                                            <input type="password" class="form-control" th:field="*{password}" required placeholder="Nhập mật khẩu...">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-person-vcard-fill"></i></span>
+                                            <input type="text" class="form-control" th:field="*{fullname}" required placeholder="Ví dụ: Nguyễn Văn A">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Địa chỉ Email <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-envelope-fill"></i></span>
+                                            <input type="email" class="form-control" th:field="*{email}" required placeholder="name@example.com">
+                                        </div>
+                                        <small class="text-muted fst-italic">Dùng để nhận thông báo và lấy lại mật khẩu.</small>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 mt-4">
+                                        <button class="btn btn-success btn-lg fw-bold" type="submit">
+                                            <i class="bi bi-person-plus-fill"></i> ĐĂNG KÝ NGAY
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <hr class="my-4">
+                                
+                                <div class="text-center">
+                                    <p class="mb-0">
+                                        Đã có tài khoản?
+                                        <a href="/account/login" class="text-decoration-none fw-bold text-primary">
+                                            Đăng nhập tại đây
+                                        </a>
+                                    </p>
+                                </div>
+                            
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <h3 class="text-primary">QUẢN LÝ LOẠI HÀNG</h3>
+            
+            <div class="card mt-3">
+                <div class="card-body">
+                    <form action="/admin/category/index" method="post"> <div class="mb-3"><label>Mã loại</label><input type="text" class="form-control" placeholder="Tự động sinh hoặc nhập..."></div>
+                        <div class="mb-3"><label>Tên loại</label><input type="text" class="form-control"></div>
+                        <button class="btn btn-success">Thêm mới</button>
+                        <button class="btn btn-warning">Cập nhật</button>
+                        <a href="#" class="btn btn-secondary">Làm mới</a>
+                    </form>
+                </div>
+            </div>
+            
+            <table class="table table-striped mt-3 bg-white border">
+                <thead class="table-dark">
+                    <tr><th>Mã loại</th><th>Tên loại</th><th>Thao tác</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1001</td><td>Laptop</td>
+                        <td><a href="#" class="btn btn-sm btn-info">Sửa</a> <a href="#" class="btn btn-sm btn-danger">Xóa</a></td>
+                    </tr>
+                    <tr>
+                        <td>1002</td><td>Điện thoại</td>
+                        <td><a href="#" class="btn btn-sm btn-info">Sửa</a> <a href="#" class="btn btn-sm btn-danger">Xóa</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/layout/index :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-uppercase"><i class="bi bi-cart3 me-2"></i>Giỏ hàng của bạn</h5>
+                </div>
+                
+                <div class="card-body">
+                    <div th:if="${cart.count == 0}" class="text-center py-5">
+                        <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" width="120" class="mb-3 opacity-50">
+                        <h5 class="text-muted">Giỏ hàng đang trống!</h5>
+                        <p class="mb-4">Hãy dạo một vòng và chọn những món đồ ưng ý nhé.</p>
+                        <a href="/home/index" class="btn btn-primary px-4 fw-bold">
+                            <i class="bi bi-arrow-left me-2"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+                    
+                    <div th:if="${cart.count > 0}">
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-center">Giá</th>
+                                        <th class="text-center" style="width: 120px;">Số lượng</th>
+                                        <th class="text-center">Thành tiền</th>
+                                        <th class="text-center">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${cart.items}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img th:src="@{|/images/${item.image}|}" class="rounded border me-3"
+                                                     width="60" height="60" style="object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold">[[${item.name}]]</h6>
+                                                    <small class="text-muted">Mã: #[[${item.id}]]</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center text-muted">
+                                            [[${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                        </td>
+                                        
+                                        <td>
+                                            <form action="/cart/update" method="post">
+                                                <input type="hidden" name="id" th:value="${item.id}">
+                                                <input type="number" name="qty" th:value="${item.qty}"
+                                                       onchange="this.form.submit()"
+                                                       class="form-control text-center" min="1" max="99">
+                                            </form>
+                                        </td>
+                                        
+                                        <td class="text-center fw-bold text-danger">
+                                            [[${#numbers.formatDecimal(item.price * item.qty, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                        </td>
+                                        <td class="text-center">
+                                            <a th:href="@{|/cart/remove/${item.id}|}" class="btn btn-outline-danger btn-sm border-0">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <a href="/cart/clear" class="btn btn-outline-danger btn-sm" onclick="return confirm('Bạn muốn xóa hết giỏ hàng?')">
+                                    <i class="bi bi-trash"></i> Xóa tất cả
+                                </a>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h4 class="mb-3">
+                                    Tổng cộng: <span class="text-danger fw-bold">[[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                                </h4>
+                                <a href="/home/index" class="btn btn-outline-secondary me-2">Tiếp tục mua</a>
+                                <a href="/order/checkout" class="btn btn-primary px-5 fw-bold py-2">
+                                    Tiến hành thanh toán <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

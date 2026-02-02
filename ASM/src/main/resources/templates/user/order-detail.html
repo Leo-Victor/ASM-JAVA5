@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/layout/index :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="card">
+                <div class="card-header bg-primary text-white">CHI TIẾT ĐƠN HÀNG #[[${orderId}]]</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Người nhận:</strong> Nguyễn Văn Leo</p>
+                            <p><strong>Ngày đặt:</strong> 20/01/2026</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p><strong>Trạng thái:</strong> <span class="badge bg-warning text-dark">Chờ duyệt</span></p>
+                            <p><strong>Tổng tiền:</strong> <span class="text-danger fw-bold fs-5">25.000.000 đ</span></p>
+                        </div>
+                    </div>
+                    
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Thành tiền</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Laptop Gaming Asus</td>
+                                <td>25.000.000</td>
+                                <td>1</td>
+                                <td>25.000.000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <a href="/order/list" class="btn btn-secondary">Quay lại danh sách</a>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

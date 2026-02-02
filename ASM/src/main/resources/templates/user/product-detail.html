@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/layout/index :: dynamic(~{::main})}">
+    <head>
+        <style>
+            /* 1. Hình ảnh đang bay */
+            .flying-img {
+                position: fixed;
+                z-index: 9999;
+                border-radius: 50%; /* Bo tròn ảnh cho đẹp */
+                object-fit: cover;
+                opacity: 1; /* Bắt đầu rõ nét */
+                pointer-events: none; /* Không chặn click chuột */
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                /* Thời gian bay là 1 giây (1s) */
+                transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+            }
+            
+            /* 2. Hiệu ứng rung giỏ hàng */
+            @keyframes shakeCart {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-15deg); }
+                75% { transform: rotate(15deg); }
+            }
+            .cart-shake {
+                animation: shakeCart 0.5s ease-in-out;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <div class="container mt-5 mb-5">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="card shadow border-0 p-3">
+                            <img id="product-image"
+                                 th:src="@{|/images/${item.image}|}"
+                                 class="card-img-top rounded"
+                                 style="object-fit: contain; max-height: 400px;"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/500x400';">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-7">
+                        <h2 class="fw-bold" th:text="${item.name}">Tên sản phẩm</h2>
+                        
+                        <div class="mb-3">
+                            <span class="badge bg-warning text-dark me-2">
+                                <i class="bi bi-star-fill"></i> 4.8
+                            </span>
+                            <span class="text-muted">Đã bán: 1.2k | Loại: [[${item.category.name}]]</span>
+                        </div>
+                        
+                        <h1 class="text-danger fw-bold mb-4">
+                            [[${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}]] ₫
+                        </h1>
+                        
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <p class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i> Bảo hành chính hãng 12 tháng</p>
+                                <p class="mb-1"><i class="bi bi-arrow-repeat text-success me-2"></i> Đổi trả trong 30 ngày</p>
+                                <p class="mb-0"><i class="bi bi-truck text-success me-2"></i> Miễn phí vận chuyển toàn quốc</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3 mt-4">
+                            
+                            <button th:onclick="'addToCart(' + ${item.id} + ')'"
+                                    class="btn btn-outline-primary flex-grow-1 py-3 fw-bold fs-5">
+                                <i class="bi bi-cart-plus-fill me-1"></i> Thêm vào giỏ
+                            </button>
+                            
+                            <a th:href="@{|/cart/buy/${item.id}|}"
+                               class="btn btn-danger flex-grow-1 py-3 fw-bold fs-5 text-white">
+                                <i class="bi bi-lightning-fill me-1"></i> Mua ngay
+                            </a>
+                        
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <h4 class="text-uppercase fw-bold border-bottom pb-2">Sản phẩm cùng loại</h4>
+                    <p class="text-muted mt-3">Danh sách sản phẩm gợi ý đang cập nhật...</p>
+                </div>
+            </div>
+            
+            <script>
+                // Hàm 1: Gọi API thêm vào giỏ
+                function addToCart(productId) {
+                    fetch('/api/cart/add/' + productId)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'error') {
+                                window.location.href = "/account/login?message=" + encodeURIComponent(data.message);
+                            } else {
+                                // Thành công -> Gọi hàm bay
+                                flyToCart(data.count);
+                            }
+                        })
+                        .catch(error => console.error('Lỗi kết nối:', error));
+                }
+            
+                // Hàm 2: Xử lý hiệu ứng bay (Đã nâng cấp độ mượt)
+                function flyToCart(newCount) {
+                    const productImg = document.getElementById('product-image');
+                    const cartIcon = document.getElementById('cart-icon-container');
+                    const cartCountBadge = document.getElementById('cart-count');
+            
+                    if (!productImg || !cartIcon) {
+                        console.error("Lỗi: Không tìm thấy ID ảnh hoặc giỏ hàng.");
+                        return;
+                    }
+            
+                    // 1. Tạo bản sao ảnh
+                    const flyImg = productImg.cloneNode();
+                    flyImg.classList.add('flying-img');
+                    
+                    // 2. Lấy tọa độ
+                    const startRect = productImg.getBoundingClientRect();
+                    const endRect = cartIcon.getBoundingClientRect();
+            
+                    // 3. Đặt vị trí ban đầu (Ảnh gốc)
+                    flyImg.style.position = 'fixed'; // Bắt buộc fixed
+                    flyImg.style.top = startRect.top + 'px';
+                    flyImg.style.left = startRect.left + 'px';
+                    flyImg.style.width = startRect.width + 'px';
+                    flyImg.style.height = startRect.height + 'px';
+                    flyImg.style.transition = 'none'; // Tắt hiệu ứng lúc đầu để không bị giật
+            
+                    document.body.appendChild(flyImg);
+            
+                    // --- KỸ THUẬT QUAN TRỌNG: CHỜ TRÌNH DUYỆT VẼ XONG ---
+                    // Dùng setTimeout 10ms để tách việc "Tạo ảnh" và "Bay ảnh" ra làm 2 luồng
+                    setTimeout(() => {
+                        // Bật lại hiệu ứng chuyển động
+                        flyImg.style.transition = 'all 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
+                        
+                        // Đặt vị trí đích (Giỏ hàng)
+                        flyImg.style.top = (endRect.top + 10) + 'px';
+                        flyImg.style.left = (endRect.left + 10) + 'px';
+                        flyImg.style.width = '30px';
+                        flyImg.style.height = '30px';
+                        flyImg.style.opacity = '0.5'; // Mờ dần khi bay tới
+                    }, 10);
+            
+                    // 4. Dọn dẹp sau khi bay xong (0.8 giây)
+                    setTimeout(() => {
+                        flyImg.remove(); // Xóa ảnh bay
+                        
+                        // Cập nhật số lượng
+                        if(cartCountBadge) {
+                            cartCountBadge.innerText = newCount;
+                            // Hiệu ứng "nảy" số lượng lên
+                            cartCountBadge.style.transform = 'scale(1.5)';
+                            setTimeout(() => cartCountBadge.style.transform = 'scale(1)', 200);
+                        }
+                        
+                        // Rung lắc icon giỏ hàng
+                        cartIcon.classList.add('cart-shake');
+                        setTimeout(() => cartIcon.classList.remove('cart-shake'), 500);
+                        
+                    }, 800); // Thời gian khớp với css transition (0.8s)
+                }
+            </script>
+        </main>
+    </body>
+</html>

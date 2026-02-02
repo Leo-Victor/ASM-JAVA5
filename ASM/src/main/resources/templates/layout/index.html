@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="dynamic(view)">
+    <head>
+        <meta charset="UTF-8">
+        <title>Tech Store</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+        
+        <style>
+            /* ================= CSS CHO MENU (Giữ nguyên hiệu ứng đẹp cũ) ================= */
+            .navbar-nav .nav-link { transition: all 0.3s ease; position: relative; font-weight: 500; }
+            .navbar-nav .nav-link:hover { color: #ffc107 !important; }
+            .active-nav { color: #ffc107 !important; font-weight: bold !important; }
+            .navbar-nav .nav-link::after {
+                content: ''; position: absolute; bottom: 5px; left: 50%;
+                width: 0; height: 2px; background-color: #ffc107;
+                transition: all 0.3s ease-in-out; transform: translateX(-50%);
+            }
+            .navbar-nav .nav-link:hover::after, .active-nav::after { width: 80%; }
+
+            /* ================= CSS CHO CHAT BOX RIÊNG TƯ ================= */
+            
+            /* Nút tròn bật chat */
+            .chat-btn-toggle {
+                position: fixed; bottom: 20px; right: 20px;
+                width: 60px; height: 60px;
+                background: linear-gradient(135deg, #0d6efd, #0043a8);
+                color: white; border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                cursor: pointer; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+                z-index: 10000; transition: transform 0.3s;
+            }
+            .chat-btn-toggle:hover { transform: scale(1.1); }
+
+            /* Khung cửa sổ Chat */
+            .chat-box {
+                position: fixed; bottom: 95px; right: 20px;
+                width: 350px; height: 480px;
+                background: white; border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 9999; display: none;
+                flex-direction: column; overflow: hidden;
+                border: 1px solid #dee2e6;
+            }
+
+            /* Header xanh */
+            .chat-header {
+                background: #0d6efd; color: white; padding: 15px;
+                display: flex; justify-content: space-between; align-items: center;
+                font-weight: bold;
+            }
+
+            /* Vùng nội dung tin nhắn */
+            .chat-content {
+                flex: 1; padding: 15px; overflow-y: auto;
+                background-color: #f1f3f5;
+                display: flex; flex-direction: column; gap: 10px;
+            }
+
+            /* Bong bóng tin nhắn */
+            .message {
+                max-width: 80%; padding: 10px 14px; border-radius: 15px;
+                font-size: 14px; line-height: 1.4; word-wrap: break-word;
+            }
+            /* Tin nhắn của User gửi -> Màu xanh, nằm phải */
+            .message.sender {
+                align-self: flex-end; background-color: #0d6efd; color: white;
+                border-bottom-right-radius: 2px;
+            }
+            /* Tin nhắn Admin trả lời -> Màu xám, nằm trái */
+            .message.receiver {
+                align-self: flex-start; background-color: #e9ecef; color: black;
+                border-bottom-left-radius: 2px;
+            }
+            .message-info { font-size: 10px; opacity: 0.7; margin-bottom: 2px; }
+
+            /* Ô nhập liệu */
+            .chat-input-area {
+                padding: 10px; background: white; border-top: 1px solid #eee;
+                display: flex; gap: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <div th:replace="~{/layout/fragments :: header}"></div>
+        
+        <div class="container mt-4 mb-4" style="min-height: 500px">
+            <div th:replace="${view}"></div>
+        </div>
+        
+        <div th:replace="~{/layout/fragments :: footer}"></div>
+        
+        <div>
+            <div class="chat-btn-toggle" onclick="toggleChat()" title="Chat với hỗ trợ">
+                <i class="bi bi-chat-dots-fill fs-3" id="chatIcon"></i>
+                <span id="newMsgBadge" class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle" style="display: none;"></span>
+            </div>
+            
+            <div class="chat-box" id="chatBox">
+                <div class="chat-header">
+                    <div><i class="bi bi-headset me-2"></i>Hỗ trợ khách hàng</div>
+                    <button type="button" class="btn-close btn-close-white" onclick="toggleChat()"></button>
+                </div>
+                
+                <div class="chat-content" id="messageArea">
+                    <div class="text-center text-muted small my-3">Tech Store xin chào!</div>
+                    <div class="message receiver">
+                        <div class="message-info">Admin</div>
+                        Chào bạn, tôi có thể giúp gì cho bạn?
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <input type="text" id="messageInput" class="form-control" placeholder="Nhập tin nhắn..." onkeypress="handleEnter(event)">
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <script th:inline="javascript">
+            var stompClient = null;
+            var username = null;
+
+            // 1. Hàm xác định danh tính (Đăng nhập rồi lấy tên thật, chưa thì tạo tên Guest)
+            function identifyUser() {
+                // Lấy user từ session server (Thymeleaf render ra)
+                var sessionUser = /*[[${session.user != null ? session.user.username : ''}]]*/ '';
+                
+                if (sessionUser && sessionUser !== '') {
+                    username = sessionUser;
+                } else {
+                    // Nếu là khách vãng lai -> Kiểm tra SessionStorage để giữ tên khi F5
+                    if (sessionStorage.getItem('chat_guest_id')) {
+                        username = sessionStorage.getItem('chat_guest_id');
+                    } else {
+                        // Tạo tên Guest ngẫu nhiên
+                        username = 'Guest_' + Math.floor(Math.random() * 10000);
+                        sessionStorage.setItem('chat_guest_id', username);
+                    }
+                }
+            }
+
+            // 2. Kết nối WebSocket
+            
+
+            function connect() {
+                identifyUser(); // Gọi hàm lấy tên
+                
+                var socket = new SockJS('/ws');
+                stompClient = Stomp.over(socket);
+                stompClient.debug = null;
+
+                stompClient.connect({name: username}, function (frame) {
+                    console.log('Đã kết nối với tên: ' + username);
+                    
+                    // [SỬA ĐOẠN NÀY]
+                    // Đổi từ '/user/...' thành '/topic/private/...'
+                    var privateChannel = '/topic/private/' + username;
+                    
+                    stompClient.subscribe(privateChannel, function (payload) {
+                        var message = JSON.parse(payload.body);
+                        displayMessage(message, 'receiver');
+                        
+                        // Hiện chấm đỏ nếu đang đóng chat
+                        var chatBox = document.getElementById('chatBox');
+                        if (chatBox.style.display === 'none') {
+                            document.getElementById('newMsgBadge').style.display = 'block';
+                        }
+                    });
+                });
+            }
+
+            // 3. Gửi tin nhắn cho Admin
+            function sendMessage() {
+                var input = document.getElementById('messageInput');
+                var content = input.value.trim();
+
+                if(content && stompClient) {
+                    var chatMessage = {
+                        sender: username,
+                        receiver: 'Admin', // Luôn gửi cho Admin
+                        content: content,
+                        type: 'CHAT'
+                    };
+                    
+                    // Gửi lên endpoint dành riêng cho Admin
+                    stompClient.send("/app/chat.sendToAdmin", {}, JSON.stringify(chatMessage));
+                    
+                    // Hiển thị tin của mình ngay lập tức (bên phải)
+                    displayMessage(chatMessage, 'sender');
+                    input.value = '';
+                }
+            }
+
+            // 4. Hàm vẽ tin nhắn lên màn hình
+            function displayMessage(message, type) {
+                var messageArea = document.getElementById('messageArea');
+                var msgElement = document.createElement('div');
+                msgElement.classList.add('message', type); // type='sender' (phải) hoặc 'receiver' (trái)
+
+                var senderName = (type === 'sender') ? 'Bạn' : 'Admin';
+                
+                var htmlContent = `
+                    <div class="message-info">${senderName}</div>
+                    <div>${message.content}</div>
+                `;
+                msgElement.innerHTML = htmlContent;
+                
+                messageArea.appendChild(msgElement);
+                messageArea.scrollTop = messageArea.scrollHeight; // Tự cuộn xuống cuối
+            }
+
+            // 5. Bật / Tắt Chat
+            function toggleChat() {
+                var chatBox = document.getElementById('chatBox');
+                var icon = document.getElementById('chatIcon');
+                var badge = document.getElementById('newMsgBadge');
+
+                if (chatBox.style.display === 'none' || chatBox.style.display === '') {
+                    // MỞ CHAT
+                    chatBox.style.display = 'flex';
+                    icon.classList.replace('bi-chat-dots-fill', 'bi-chevron-down');
+                    badge.style.display = 'none'; // Tắt chấm đỏ
+                    
+                    if(!stompClient) connect(); // Nếu chưa kết nối thì kết nối
+                    
+                    setTimeout(() => document.getElementById('messageInput').focus(), 300);
+                } else {
+                    // ĐÓNG CHAT
+                    chatBox.style.display = 'none';
+                    icon.classList.replace('bi-chevron-down', 'bi-chat-dots-fill');
+                }
+            }
+
+            // Xử lý phím Enter
+            function handleEnter(e) {
+                if(e.key === 'Enter') sendMessage();
+            }
+            
+            // Tự động kết nối sau 1 giây để sẵn sàng nhận tin
+            setTimeout(connect, 1000);
+        </script>
+    </body>
+</html>

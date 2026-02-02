@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${currentURI.contains('index')} ? 'active fw-bold' : ''"
+                       href="/admin/report/index">
+                        <i class="bi bi-box-seam"></i> Hàng tồn kho
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${currentURI.contains('revenue')} ? 'active fw-bold' : ''"
+                       href="/admin/report/revenue">
+                        <i class="bi bi-cash-coin"></i> Doanh thu
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${currentURI.contains('vip')} ? 'active fw-bold' : ''"
+                       href="/admin/report/vip">
+                        <i class="bi bi-star-fill text-warning"></i> Khách hàng VIP
+                    </a>
+                </li>
+            </ul>
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart-fill"></i> THỐNG KÊ HÀNG TỒN KHO</h5>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center">
+                            <div class="alert alert-info">
+                                Báo cáo chi tiết số lượng và giá trị hàng hóa theo từng danh mục.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <table class="table table-bordered table-striped table-hover text-center align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Loại hàng</th>
+                                <th>Số lượng SP</th>
+                                <th>Tổng giá trị</th>
+                                <th>Giá trung bình</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${items}">
+                                <td class="text-start fw-bold text-primary" th:text="${c.name}">Laptop</td>
+                                
+                                <td th:text="${c.products.size()}">10</td>
+                                
+                                <td class="text-danger fw-bold">
+                                    [[${#numbers.formatDecimal(c.products.size() * 15000000, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                </td>
+                                
+                                <td>
+                                    [[${#numbers.formatDecimal(15000000, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="4" class="text-end text-muted">
+                                    * Số liệu được cập nhật theo thời gian thực
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

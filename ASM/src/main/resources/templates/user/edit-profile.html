@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/layout/index :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="container mt-5 mb-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-primary text-white py-3">
+                                <h5 class="mb-0 fw-bold text-uppercase"><i class="bi bi-person-lines-fill"></i> Hồ sơ cá nhân</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                
+                                <div th:if="${message != null}" class="alert alert-success text-center">
+                                    <i class="bi bi-check-circle-fill"></i> [[${message}]]
+                                </div>
+                                <div th:if="${error != null}" class="alert alert-danger text-center">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> [[${error}]]
+                                </div>
+                                
+                                <form action="/account/edit-profile" method="post" th:object="${user}" enctype="multipart/form-data">
+                                    
+                                    <div class="row mb-4">
+                                        <div class="col-md-4 text-center">
+                                            <img id="avatarPreview"
+                                                 th:src="@{|/images/${user.photo}|}"
+                                                 class="img-thumbnail rounded-circle mb-3 shadow-sm"
+                                                 style="width: 150px; height: 150px; object-fit: cover;"
+                                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=User';">
+                                            
+                                            <div class="d-grid">
+                                                <label class="btn btn-outline-primary btn-sm cursor-pointer">
+                                                    <i class="bi bi-camera-fill"></i> Chọn ảnh mới
+                                                    <input type="file" name="photoFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                                                </label>
+                                            </div>
+                                            <small class="text-muted fst-italic mt-2 d-block">(Tối đa 5MB)</small>
+                                        </div>
+                                        
+                                        <div class="col-md-8">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Tên đăng nhập</label>
+                                                <input type="text" class="form-control bg-light" th:field="*{username}" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Họ và tên</label>
+                                                <input type="text" class="form-control" th:field="*{fullname}" name="fullname" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Email</label>
+                                                <input type="email" class="form-control" th:field="*{email}" name="email" required>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                                <a href="/account/change-password" class="text-decoration-none text-muted">
+                                                    <i class="bi bi-key"></i> Đổi mật khẩu
+                                                </a>
+                                                <button class="btn btn-primary fw-bold px-4" type="submit">
+                                                    <i class="bi bi-save"></i> CẬP NHẬT
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                function previewImage(input) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            // Gán link ảnh vừa chọn vào thẻ img preview
+                            document.getElementById('avatarPreview').src = e.target.result;
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+            </script>
+        
+        </main>
+    </body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <h2 class="mb-4">TỔNG QUAN HỆ THỐNG</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-3">
+                        <div class="card-header">Sản phẩm</div>
+                        <div class="card-body"><h5 class="card-title">120 mặt hàng</h5></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-3">
+                        <div class="card-header">Doanh thu ngày</div>
+                        <div class="card-body"><h5 class="card-title">50.000.000 đ</h5></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-3">
+                        <div class="card-header">Đơn chờ duyệt</div>
+                        <div class="card-body"><h5 class="card-title">5 đơn hàng</h5></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger mb-3">
+                        <div class="card-header">Khách hàng</div>
+                        <div class="card-body"><h5 class="card-title">1,050 user</h5></div>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info">Chào mừng Admin quay trở lại hệ thống quản trị Tech Store!</div>
+        </main>
+    </body>
+</html>

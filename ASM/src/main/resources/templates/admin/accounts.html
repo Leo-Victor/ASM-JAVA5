@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <h3 class="text-primary">QUẢN LÝ TÀI KHOẢN</h3>
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-body">
+                            <form>
+                                <div class="mb-3"><label>Username</label><input type="text" class="form-control"></div>
+                                <div class="mb-3"><label>Họ tên</label><input type="text" class="form-control"></div>
+                                <div class="mb-3"><label>Email</label><input type="email" class="form-control"></div>
+                                <div class="mb-3"><label>Vai trò</label>
+                                    <div class="form-check"><input type="radio" name="role" checked> User</div>
+                                    <div class="form-check"><input type="radio" name="role"> Admin</div>
+                                </div>
+                                <button class="btn btn-primary w-100">Lưu tài khoản</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <table class="table table-bordered bg-white">
+                        <thead class="table-dark"><tr><th>User</th><th>Họ tên</th><th>Role</th><th></th></tr></thead>
+                        <tbody>
+                            <tr><td>admin</td><td>Quản trị viên</td><td>Admin</td><td><a href="#">Sửa</a></td></tr>
+                            <tr><td>leo</td><td>Nguyễn Leo</td><td>User</td><td><a href="#">Sửa</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <body>
+        
+        <div th:fragment="header">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+                <div class="container">
+                    <a class="navbar-brand text-warning fw-bold text-uppercase" href="/home/index">
+                        <i class="bi bi-cpu-fill"></i> TECH STORE
+                    </a>
+                    
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <div class="collapse navbar-collapse" id="navbarContent">
+                        
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/home/index"
+                                   th:classappend="${currentURI == '/' or currentURI != null and currentURI.contains('/home')} ? 'active-nav'"
+                                   th:text="#{nav.home}"> Trang chủ
+                                </a>
+                            </li>
+                            
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                                   th:classappend="${currentURI != null and currentURI.contains('/product')} ? 'active-nav'"
+                                   th:text="#{nav.category}"> Danh mục
+                                </a>
+                                <ul class="dropdown-menu shadow">
+                                    <li th:each="c : ${categories}">
+                                        <a class="dropdown-item" th:href="@{|/product/list-by-category/${c.id}|}" th:text="${c.name}"></a>
+                                    </li>
+                                </ul>
+                            </li>
+                            
+                            <li class="nav-item" th:if="${session.user != null}">
+                                <a class="nav-link" href="/order/list"
+                                   th:classappend="${currentURI != null and currentURI.contains('/order')} ? 'active-nav'"
+                                   th:text="#{nav.order}"> Tra cứu đơn hàng
+                                </a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a class="nav-link" href="/home/contact"
+                                   th:classappend="${currentURI != null and currentURI.contains('/contact')} ? 'active-nav'"
+                                   th:text="#{nav.contact}"> Liên hệ
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <div class="d-flex align-items-center">
+                            
+                            <a href="/cart/view" id="cart-icon-container" class="btn btn-outline-light me-3 position-relative border-0">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span class="d-none d-md-inline ms-1" th:text="#{nav.cart}">Giỏ hàng</span>
+                                
+                                <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                      th:text="${cart != null ? cart.count : 0}"> 0
+                                </span>
+                            </a>
+                            
+                            <th:block th:if="${session.user == null}">
+                                <a href="/account/login" class="btn btn-primary me-2 fw-bold btn-sm" th:text="#{nav.login}">Đăng nhập</a>
+                                <a href="/account/register" class="btn btn-outline-light fw-bold btn-sm me-3" th:text="#{nav.register}">Đăng ký</a>
+                            </th:block>
+                            
+                            <th:block th:if="${session.user != null}">
+                                <div class="dropdown me-3">
+                                    <button class="btn btn-dark dropdown-toggle d-flex align-items-center gap-2 border border-secondary px-3 py-1 rounded-pill"
+                                            type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                        
+                                        <img th:if="${session.user.photo != null}"
+                                             th:src="@{|/images/${session.user.photo}|}"
+                                             class="rounded-circle border border-warning" width="30" height="30" style="object-fit: cover;"
+                                             onerror="this.onerror=null; this.src='https://via.placeholder.com/30?text=U';">
+                                        
+                                        <img th:if="${session.user.photo == null}"
+                                             src="https://via.placeholder.com/30?text=U"
+                                             class="rounded-circle border border-warning" width="30" height="30">
+                                        
+                                        <span class="fw-bold text-warning ms-1">[[${session.user.username}]]</span>
+                                    </button>
+                                    
+                                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                                        <li>
+                                            <div class="dropdown-header text-center">
+                                                <strong class="d-block">[[${session.user.fullname}]]</strong>
+                                            </div>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        
+                                        <li>
+                                            <a class="dropdown-item" href="/account/edit-profile">
+                                                <i class="bi bi-person-gear me-2 text-primary"></i> <span th:text="#{user.profile}">Cập nhật hồ sơ</span>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a class="dropdown-item" href="/order/list">
+                                                <i class="bi bi-bag-check me-2 text-success"></i> <span th:text="#{user.history}">Đơn hàng của tôi</span>
+                                            </a>
+                                        </li>
+                                        
+                                        <li th:if="${session.user.admin == true}">
+                                            <hr class="dropdown-divider">
+                                            <a class="dropdown-item fw-bold text-danger" href="/admin/dashboard">
+                                                <i class="bi bi-speedometer2 me-2"></i> <span th:text="#{user.admin}">Trang Quản Trị</span>
+                                            </a>
+                                        </li>
+                                        
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="/account/logout">
+                                                <i class="bi bi-box-arrow-right me-2"></i> <span th:text="#{user.logout}">Đăng xuất</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </th:block>
+                            
+                            <div class="border-start border-secondary ps-3 ms-2">
+                                <a th:href="@{(${#locale.language} == 'vi' ? '?lang=en' : '?lang=vi')}"
+                                   class="text-decoration-none d-flex align-items-center gap-2 btn btn-outline-warning border-0 px-2 py-1"
+                                   title="Click để đổi ngôn ngữ">
+                                    
+                                    <span class="fw-bold fs-5" style="font-family: monospace;"
+                                          th:text="${#locale.language} == 'vi' ? 'VI' : 'EN'">VI</span>
+                                    
+                                    <i class="bi bi-translate fs-4"></i>
+                                </a>
+                            </div>
+                        
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        
+        <div th:fragment="footer">
+            <footer class="bg-dark text-white text-center py-4 mt-5 border-top border-secondary">
+                <div class="container">
+                    <p class="mb-0" th:text="#{footer.copyright}">&copy; 2026 Tech Store - Java 5 Assignment.</p>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+    <body>
+        <main>
+            <div class="card">
+                <div class="card-header bg-primary text-white">GỬI EMAIL CHO KHÁCH HÀNG</div>
+                <div class="card-body">
+                    <form action="/admin/account/send-mail" method="post">
+                        <div class="mb-3">
+                            <label>Người nhận:</label>
+                            <input type="email" name="to" class="form-control" th:value="${user.email}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label>Tiêu đề:</label>
+                            <input type="text" name="subject" class="form-control" placeholder="Nhập tiêu đề..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Nội dung:</label>
+                            <textarea name="body" class="form-control" rows="5" placeholder="Nhập nội dung khuyến mãi..." required></textarea>
+                        </div>
+                        <button class="btn btn-success">Gửi ngay</button>
+                        <a href="/admin/account/index" class="btn btn-secondary">Hủy</a>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>
