@@ -16,12 +16,22 @@ public class GlobalController {
     @Autowired
     CategoryDAO categoryDAO;
 
-    @ModelAttribute
-    public void globalAttributes(Model model, HttpServletRequest request) {
-        // 1. Gửi URI để highlight menu Admin
-        model.addAttribute("currentURI", request.getRequestURI());
+    @Autowired
+    HttpServletRequest request;
 
-        // 2. Gửi danh sách Loại hàng để tạo Menu Động (cho User)
+    /**
+     * Hàm này sẽ chạy tự động trước mọi Request
+     * Giúp nạp các dữ liệu dùng chung vào Model
+     */
+    @ModelAttribute
+    public void globalAttributes(Model model) {
+        // 1. Gửi đường dẫn hiện tại (currentURI) ra View
+        // Giúp tô màu menu (Active) bên trang Admin và User
+        String uri = request.getRequestURI();
+        model.addAttribute("currentURI", uri);
+
+        // 2. Gửi danh sách Loại hàng (Categories)
+        // Để hiển thị menu "Danh mục" động ở header trang bán hàng
         List<Category> categories = categoryDAO.findAll();
         model.addAttribute("categories", categories);
     }

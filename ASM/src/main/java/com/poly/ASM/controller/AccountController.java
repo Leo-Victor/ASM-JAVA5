@@ -1,6 +1,8 @@
 package com.poly.ASM.controller;
 
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
 @Controller
 public class AccountController {
 
@@ -95,7 +96,7 @@ public class AccountController {
 
             account.setActivated(true);
             account.setAdmin(false);
-            account.setPhoto("user.png");
+            account.setPhoto("user.png"); // Ảnh mặc định
             accountDAO.save(account);
 
             // Gửi mail thông báo
@@ -103,8 +104,9 @@ public class AccountController {
                 if(account.getEmail() != null && !account.getEmail().isEmpty()) {
                     String subject = "Chào mừng bạn đến với Tech Store!";
                     String body = "<h3>Xin chào " + account.getFullname() + "!</h3>" +
-                            "<p>Chúc mừng bạn đã đăng ký thành công.</p>" +
+                            "<p>Chúc mừng bạn đã đăng ký thành công tài khoản thành viên.</p>" +
                             "<p>Tên đăng nhập: <strong>" + account.getUsername() + "</strong></p>" +
+                            "<p>Hãy đăng nhập ngay để trải nghiệm mua sắm.</p>" +
                             "<br>Trân trọng,<br>Tech Store Team";
                     mailerService.send(account.getEmail(), subject, body);
                 }
@@ -127,6 +129,7 @@ public class AccountController {
     // ============================================================
     @GetMapping("/account/change-password")
     public String changePasswordForm() {
+        if(session.getAttribute("user") == null) return "redirect:/account/login";
         return "user/change-password";
     }
 
@@ -147,18 +150,54 @@ public class AccountController {
         } else {
             user.setPassword(newPassword);
             accountDAO.save(user);
+            // Cập nhật lại session
+            session.setAttribute("user", user);
             model.addAttribute("message", "Đổi mật khẩu thành công!");
         }
         return "user/change-password";
     }
 
     // ============================================================
-    // 4. CẬP NHẬT HỒ SƠ (Đã sửa lỗi hiển thị sai thông tin)
+    // 4. QUÊN MẬT KHẨU (ĐÃ FIX LỖI 405)
     // ============================================================
+    @GetMapping("/account/forgot-password")
+    public String forgot() { return "user/forgot-password"; }
 
+    @PostMapping("/account/forgot-password")
+    public String processForgotPassword(Model model, @RequestParam("username") String username) {
+        // Tìm user theo username hoặc email (Giả sử bạn chỉ tìm theo username trước)
+        // Nếu muốn tìm cả email thì cần viết thêm hàm trong AccountDAO
+        try {
+            Account user = accountDAO.findById(username).orElse(null);
+
+            if(user != null && user.getEmail() != null) {
+                // Giả lập gửi mật khẩu qua mail (Bạn có thể random mật khẩu mới ở đây)
+                String subject = "Tech Store - Quên mật khẩu";
+                String body = "Mật khẩu hiện tại của bạn là: " + user.getPassword();
+                mailerService.send(user.getEmail(), subject, body);
+
+                model.addAttribute("message", "Mật khẩu đã được gửi vào email: " + user.getEmail());
+            } else {
+                model.addAttribute("message", "Không tìm thấy tài khoản hoặc email không hợp lệ!");
+                return "user/forgot-password";
+            }
+        } catch (Exception e) {
+            model.addAttribute("message", "Lỗi gửi mail: " + e.getMessage());
+            return "user/forgot-password";
+        }
+
+        // Chuyển về trang login với thông báo thành công
+        return "user/login";
+    }
+
+    // ============================================================
+    // 5. CẬP NHẬT HỒ SƠ & UPLOAD ẢNH (Logic chuẩn)
+    // ============================================================
     @GetMapping("/account/edit-profile")
     public String editProfile(Model model) {
         Account user = (Account) session.getAttribute("user");
+        if(user == null) return "redirect:/account/login";
+
         model.addAttribute("user", user);
         return "user/edit-profile";
     }
@@ -166,51 +205,55 @@ public class AccountController {
     @PostMapping("/account/edit-profile")
     public String updateProfile(
             @ModelAttribute("user") Account formData,
-            @RequestParam("photoFile") MultipartFile photoFile, // Nhận file ảnh từ form
+            @RequestParam("photoFile") MultipartFile photoFile,
             Model model) {
         try {
-            // 1. Lấy User cũ đang đăng nhập
-            Account current = (Account) session.getAttribute("user");
+            // Lấy lại user từ DB để đảm bảo dữ liệu gốc
+            String username = ((Account)session.getAttribute("user")).getUsername();
+            Account dbAccount = accountDAO.findById(username).get();
 
-            // 2. Cập nhật thông tin cơ bản
-            current.setFullname(formData.getFullname());
-            current.setEmail(formData.getEmail());
+            // Cập nhật thông tin text
+            dbAccount.setFullname(formData.getFullname());
+            dbAccount.setEmail(formData.getEmail());
 
-            // --- XỬ LÝ UPLOAD ẢNH ---
+            // Xử lý upload ảnh
             if (!photoFile.isEmpty()) {
-                // A. Xác định thư mục lưu ảnh (Đường dẫn tuyệt đối đến thư mục static/images trong dự án)
-                // Lưu ý: Cách này chỉ dùng tốt khi chạy trong IDE (IntelliJ/Eclipse) để phát triển.
-                String uploadDir = System.getProperty("user.dir") + "/src/main/resources/static/images/";
-
-                // B. Tạo tên file mới (Dùng username + thời gian để tránh trùng tên)
-                // Ví dụ: khoa_167899999.jpg
                 String originalFilename = photoFile.getOriginalFilename();
-                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                String newFilename = current.getUsername() + "_" + System.currentTimeMillis() + extension;
+                String extension = "";
+                if (originalFilename != null && originalFilename.contains(".")) {
+                    extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                }
+                // Tên file duy nhất: username_timestamp.jpg
+                String newFilename = dbAccount.getUsername() + "_" + System.currentTimeMillis() + extension;
 
-                // C. Lưu file vào ổ cứng
-                Path path = Paths.get(uploadDir + newFilename);
-                Files.copy(photoFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+                // 1. Lưu vào thư mục SOURCE (Code gốc)
+                String srcDir = System.getProperty("user.dir") + "/src/main/resources/static/images/";
+                Path srcPath = Paths.get(srcDir);
+                if (!Files.exists(srcPath)) Files.createDirectories(srcPath);
+                Files.copy(photoFile.getInputStream(), srcPath.resolve(newFilename), StandardCopyOption.REPLACE_EXISTING);
 
-                // D. Cập nhật tên file mới vào đối tượng User
-                current.setPhoto(newFilename);
+                // 2. Lưu vào thư mục TARGET (Code đang chạy) - Quan trọng để hiện ảnh ngay
+                String targetDir = System.getProperty("user.dir") + "/target/classes/static/images/";
+                Path targetPath = Paths.get(targetDir);
+                if (!Files.exists(targetPath)) Files.createDirectories(targetPath);
+                Files.copy(srcPath.resolve(newFilename), targetPath.resolve(newFilename), StandardCopyOption.REPLACE_EXISTING);
+
+                // Cập nhật tên ảnh vào DB
+                dbAccount.setPhoto(newFilename);
             }
-            // ------------------------
 
-            // 3. Lưu xuống Database
-            accountDAO.save(current);
-
-            // 4. Cập nhật lại Session
-            session.setAttribute("user", current);
+            // Lưu xuống DB
+            accountDAO.save(dbAccount);
+            // Cập nhật lại session để menu hiển thị thông tin mới
+            session.setAttribute("user", dbAccount);
 
             model.addAttribute("message", "Cập nhật hồ sơ thành công!");
+            model.addAttribute("user", dbAccount);
+
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("error", "Lỗi cập nhật: " + e.getMessage());
         }
         return "user/edit-profile";
     }
-
-    @GetMapping("/account/forgot-password")
-    public String forgot() { return "user/forgot-password"; }
 }

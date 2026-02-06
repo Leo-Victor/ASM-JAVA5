@@ -1,35 +1,125 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/layout/index :: dynamic(~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/layout/index :: dynamic(~{::main})}">
     <body>
         <main>
-            <div class="card">
-                <div class="card-header bg-primary text-white">CHI TIẾT ĐƠN HÀNG #[[${orderId}]]</div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Người nhận:</strong> Nguyễn Văn Leo</p>
-                            <p><strong>Ngày đặt:</strong> 20/01/2026</p>
+            <style>
+                .detail-container { max-width: 900px; margin: 0 auto; }
+                .detail-card { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px; }
+                
+                /* Timeline Trạng thái */
+                .timeline-wrapper { background: #f8f9fa; padding: 30px 20px; border-bottom: 1px solid #eee; }
+                .timeline { display: flex; justify-content: space-between; position: relative; max-width: 600px; margin: 0 auto; }
+                .timeline::before {
+                    content: ''; position: absolute; top: 15px; left: 0; right: 0; height: 4px; background: #e9ecef; z-index: 1;
+                }
+                .timeline-item { position: relative; z-index: 2; text-align: center; width: 33.33%; }
+                .timeline-dot {
+                    width: 34px; height: 34px; border-radius: 50%; background: #e9ecef; color: #aaa;
+                    display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold;
+                    border: 4px solid white; transition: all 0.3s;
+                }
+                .timeline-text { font-size: 0.85rem; color: #6c757d; font-weight: 600; }
+                
+                /* Active State */
+                .timeline-item.active .timeline-dot { background: #28a745; color: white; box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2); }
+                .timeline-item.active .timeline-text { color: #28a745; }
+                
+                /* Bảng sản phẩm */
+                .table-detail th { font-size: 0.85rem; text-transform: uppercase; color: #888; border-top: none; }
+                .table-detail td { vertical-align: middle; padding: 15px 10px; }
+            </style>
+            
+            <div class="container py-5 animate__animated animate__fadeIn detail-container">
+                <div class="d-flex align-items-center mb-4">
+                    <a href="/order/list" class="text-decoration-none text-secondary me-3"><i class="bi bi-arrow-left-circle fs-3"></i></a>
+                    <h4 class="fw-bold m-0 text-uppercase">Chi tiết đơn hàng #[[${order.id}]]</h4>
+                </div>
+                
+                <div class="detail-card">
+                    <div class="timeline-wrapper">
+                        <div class="timeline">
+                            <div class="timeline-item active">
+                                <div class="timeline-dot"><i class="bi bi-clipboard-check"></i></div>
+                                <div class="timeline-text">Đã đặt hàng</div>
+                            </div>
+                            <div class="timeline-item" th:classappend="${order.status >= 1} ? 'active'">
+                                <div class="timeline-dot"><i class="bi bi-truck"></i></div>
+                                <div class="timeline-text">Đang vận chuyển</div>
+                            </div>
+                            <div class="timeline-item" th:classappend="${order.status == 2} ? 'active'">
+                                <div class="timeline-dot"><i class="bi bi-star-fill"></i></div>
+                                <div class="timeline-text">Hoàn tất</div>
+                            </div>
                         </div>
-                        <div class="col-md-6 text-md-end">
-                            <p><strong>Trạng thái:</strong> <span class="badge bg-warning text-dark">Chờ duyệt</span></p>
-                            <p><strong>Tổng tiền:</strong> <span class="text-danger fw-bold fs-5">25.000.000 đ</span></p>
+                        <div class="text-center mt-3" th:if="${order.status == 3}">
+                            <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="bi bi-x-circle me-1"></i> Đơn hàng đã bị hủy</span>
                         </div>
                     </div>
                     
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                            <tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Thành tiền</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Laptop Gaming Asus</td>
-                                <td>25.000.000</td>
-                                <td>1</td>
-                                <td>25.000.000</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <a href="/order/list" class="btn btn-secondary">Quay lại danh sách</a>
+                    <div class="p-4">
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6 border-end">
+                                <h6 class="text-uppercase fw-bold text-primary mb-3"><i class="bi bi-geo-alt-fill me-2"></i> Địa chỉ nhận hàng</h6>
+                                <p class="mb-1 fw-bold">[[${order.account.fullname}]]</p>
+                                <p class="mb-1 text-secondary small">[[${order.createDate}]]</p>
+                                <p class="mb-0 text-dark mt-2">[[${order.address}]]</p>
+                            </div>
+                            
+                            <div class="col-md-6 ps-md-4">
+                                <h6 class="text-uppercase fw-bold text-primary mb-3"><i class="bi bi-credit-card-2-front-fill me-2"></i> Thanh toán</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-secondary">Phương thức:</span>
+                                    <span class="fw-bold text-dark">Thanh toán khi nhận hàng (COD)</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                                    <span class="text-uppercase fw-bold">Tổng tiền:</span>
+                                    <span class="text-danger fs-4 fw-bold">
+                                        [[${#numbers.formatDecimal(order.totalAmount != null ? order.totalAmount : 0, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-detail mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">Đơn giá</th>
+                                        <th class="text-center">Số lượng</th>
+                                        <th class="text-end">Tạm tính</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="d : ${order.orderDetails}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img th:src="@{|/images/${d.product.image}|}" width="50" height="50" class="rounded border me-3" style="object-fit: cover;"
+                                                     onerror="this.src='https://via.placeholder.com/50?text=IMG'">
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold small text-dark">[[${d.product.name}]]</h6>
+                                                    <small class="text-muted">Mã: #[[${d.product.id}]]</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end text-muted">
+                                            [[${#numbers.formatDecimal(d.price, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                        </td>
+                                        <td class="text-center fw-bold">[[${d.quantity}]]</td>
+                                        <td class="text-end fw-bold text-dark">
+                                            [[${#numbers.formatDecimal(d.price * d.quantity, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-light p-3 text-end">
+                        <a href="/order/list" class="btn btn-outline-secondary btn-sm me-2">Quay lại danh sách</a>
+                        <a href="/home/index" class="btn btn-primary btn-sm fw-bold">Mua thêm sản phẩm khác</a>
+                    </div>
                 </div>
             </div>
         </main>

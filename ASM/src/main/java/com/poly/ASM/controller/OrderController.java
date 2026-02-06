@@ -3,9 +3,15 @@ package com.poly.ASM.controller;
 import com.poly.ASM.dao.OrderDAO;
 import com.poly.ASM.dao.OrderDetailDAO;
 import com.poly.ASM.dao.ProductDAO;
+// [QUAN TRỌNG] Đảm bảo dùng bộ 3 này của com.fasterxml
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.poly.ASM.model.*;
 import com.poly.ASM.service.MailerService;
+import com.poly.ASM.service.interfaces.OrderService;
 import com.poly.ASM.service.interfaces.ShoppingCartService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,6 +20,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+//import tools.jackson.databind.ObjectMapper;
+//import tools.jackson.databind.node.ObjectNode;
 
 
 import java.net.URLEncoder; // [MỚI] Import để mã hóa tiếng Việt
@@ -26,19 +34,13 @@ import java.util.stream.Collectors;
 public class OrderController {
 
     @Autowired
-    ShoppingCartService cartService;
+    OrderService orderService; // Sử dụng Service để xử lý lưu DB (Chuẩn mới)
 
     @Autowired
-    OrderDAO orderDAO;
+    ShoppingCartService cartService; // Để lấy tổng tiền gửi mail
 
     @Autowired
-    OrderDetailDAO orderDetailDAO;
-
-    @Autowired
-    ProductDAO productDAO;
-
-    @Autowired
-    MailerService mailerService;
+    MailerService mailerService; // [QUAN TRỌNG] Để gửi mail xác nhận
 
     @Autowired
     HttpSession session;
@@ -48,101 +50,103 @@ public class OrderController {
     // ============================================================
     @GetMapping("/order/checkout")
     public String checkout(Model model) {
-        if(session.getAttribute("user") == null) {
+        // Kiểm tra đăng nhập & Mã hóa thông báo tiếng Việt
+        if (session.getAttribute("user") == null) {
             String msg = URLEncoder.encode("Vui lòng đăng nhập để thanh toán!", StandardCharsets.UTF_8);
             return "redirect:/account/login?message=" + msg;
         }
 
+        // Đẩy giỏ hàng sang view để hiển thị lại lần cuối
         model.addAttribute("cart", cartService);
-        return "user/check-out";
+        return "user/check-out"; // [ĐÚNG] Trỏ vào file templates/user/check-out.html
     }
 
+    // ============================================================
+    // 2. XỬ LÝ MUA HÀNG (PURCHASE)
+    // ============================================================
     @PostMapping("/order/purchase")
     public String purchase(
             @RequestParam("address") String address,
             @RequestParam("phone") String phone,
-            Model model) {
+            HttpServletRequest request) {
 
         Account user = (Account) session.getAttribute("user");
-        if(user == null) {
+        if (user == null) {
             return "redirect:/account/login";
         }
 
-        // A. Tạo đơn hàng
-        Order order = new Order();
-        order.setAccount(user);
-        order.setCreateDate(new Date());
-        order.setAddress(address);
-
-        Order newOrder = orderDAO.save(order);
-
-        // B. Lưu chi tiết đơn hàng
-        for(CartItem item : cartService.getItems()) {
-            OrderDetail od = new OrderDetail();
-            od.setOrder(newOrder);
-            Product product = productDAO.findById(item.getId()).orElse(null);
-            od.setProduct(product);
-            od.setPrice(item.getPrice());
-            od.setQuantity(item.getQty());
-            orderDetailDAO.save(od);
-        }
-
-        // C. Gửi Email
         try {
-            if(user.getEmail() != null && !user.getEmail().isEmpty()) {
-                String subject = "Xác nhận đơn hàng #" + newOrder.getId();
-                String body = "<h3>Cảm ơn bạn đã đặt hàng tại Tech Store!</h3>" +
-                        "<p>Mã đơn hàng: <strong>" + newOrder.getId() + "</strong></p>" +
-                        "<p>Tổng tiền: " + String.format("%,.0f", cartService.getAmount()) + " VNĐ</p>" +
-                        "<p>Địa chỉ giao hàng: " + address + "</p>";
+            // A. TẠO ĐƠN HÀNG
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode orderData = mapper.createObjectNode();
+            orderData.put("address", address);
+
+            // Lưu tổng tiền trước khi clear giỏ hàng
+            double totalAmount = cartService.getAmount();
+
+            // Gọi hàm create bên Service
+            Order newOrder = orderService.create(orderData, user);
+
+            // B. GỬI EMAIL XÁC NHẬN (SỬA LẠI CHỖ NÀY)
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                String subject = "Tech Store - Xác nhận đơn hàng #" + newOrder.getId();
+                String body = "<h3>Cảm ơn " + user.getFullname() + " đã đặt hàng!</h3>" +
+                        "<p><strong>Mã đơn hàng:</strong> " + newOrder.getId() + "</p>" +
+                        "<p><strong>Ngày đặt:</strong> " + newOrder.getCreateDate() + "</p>" +
+                        "<p><strong>Tổng tiền:</strong> " + String.format("%,.0f", totalAmount) + " VNĐ</p>" +
+                        "<p><strong>Địa chỉ giao hàng:</strong> " + address + "</p>" +
+                        "<p><strong>Số điện thoại:</strong> " + phone + "</p>" +
+                        "<hr>" +
+                        "<p>Vui lòng theo dõi trạng thái đơn hàng trong mục 'Lịch sử đơn hàng'.</p>";
+
+                // [SỬA LỖI TẠI ĐÂY]: Đổi từ queue() thành send()
                 mailerService.send(user.getEmail(), subject, body);
             }
+
+            return "redirect:/order/list";
+
         } catch (Exception e) {
             e.printStackTrace();
+            return "redirect:/order/checkout?error=true";
         }
-
-        // D. Xóa giỏ hàng
-        cartService.clear();
-
-        return "redirect:/order/detail/" + newOrder.getId();
     }
 
     // ============================================================
-    // 2. DANH SÁCH ĐƠN HÀNG (TRA CỨU)
+    // 3. DANH SÁCH LỊCH SỬ ĐƠN HÀNG
     // ============================================================
     @GetMapping("/order/list")
     public String list(Model model) {
         Account user = (Account) session.getAttribute("user");
 
-        // [CHECK LOGIN & ENCODE MESSAGE]
-        if(user == null) {
+        // Kiểm tra đăng nhập
+        if (user == null) {
             session.setAttribute("security-uri", "/order/list");
-            String msg = URLEncoder.encode("Bạn cần đăng nhập để xem lịch sử đơn hàng!", StandardCharsets.UTF_8);
+            String msg = URLEncoder.encode("Bạn cần đăng nhập để xem lịch sử!", StandardCharsets.UTF_8);
             return "redirect:/account/login?message=" + msg;
         }
 
-        // Lấy danh sách đơn hàng của user đó
-        List<Order> orders = orderDAO.findAll().stream()
-                .filter(order -> order.getAccount().getUsername().equals(user.getUsername()))
-                .collect(Collectors.toList());
-
+        // Lấy danh sách từ Service (đã sắp xếp ngày mới nhất lên đầu)
+        List<Order> orders = orderService.findByUsername(user.getUsername());
         model.addAttribute("orders", orders);
-        return "user/order-list";
+
+        return "user/order-list"; // [ĐÚNG] Trỏ vào file templates/user/order-list.html
     }
 
     // ============================================================
-    // 3. CHI TIẾT ĐƠN HÀNG
+    // 4. CHI TIẾT ĐƠN HÀNG
     // ============================================================
     @GetMapping("/order/detail/{id}")
     public String detail(@PathVariable("id") Long id, Model model) {
-        if(session.getAttribute("user") == null) {
+        Account user = (Account) session.getAttribute("user");
+
+        if (user == null) {
             session.setAttribute("security-uri", "/order/detail/" + id);
-            String msg = URLEncoder.encode("Vui lòng đăng nhập để xem chi tiết!", StandardCharsets.UTF_8);
-            return "redirect:/account/login?message=" + msg;
+            return "redirect:/account/login";
         }
 
-        Order order = orderDAO.findById(id).orElse(null);
+        Order order = orderService.findById(id);
         model.addAttribute("order", order);
-        return "user/order-detail";
+
+        return "user/order-detail"; // [ĐÚNG] Trỏ vào file templates/user/order-detail.html
     }
 }

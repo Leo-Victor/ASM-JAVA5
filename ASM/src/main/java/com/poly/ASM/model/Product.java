@@ -31,4 +31,9 @@ public class Product implements Serializable {
 
     @OneToMany(mappedBy = "product")
     List<OrderDetail> orderDetails;
+
+    // Thêm vào trong class Product
+    public boolean isAvailable() {
+        return this.available; // Hoặc return this.activated; tùy tên bạn đặt
+    }
 }

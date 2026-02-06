@@ -1,92 +1,167 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{/layout/index :: dynamic(~{::main})}">
-    <head>
-        <style>
-            /* 1. Hình ảnh đang bay */
-            .flying-img {
-                position: fixed;
-                z-index: 9999;
-                border-radius: 50%; /* Bo tròn ảnh cho đẹp */
-                object-fit: cover;
-                opacity: 1; /* Bắt đầu rõ nét */
-                pointer-events: none; /* Không chặn click chuột */
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                /* Thời gian bay là 1 giây (1s) */
-                transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
-            }
-            
-            /* 2. Hiệu ứng rung giỏ hàng */
-            @keyframes shakeCart {
-                0%, 100% { transform: rotate(0deg); }
-                25% { transform: rotate(-15deg); }
-                75% { transform: rotate(15deg); }
-            }
-            .cart-shake {
-                animation: shakeCart 0.5s ease-in-out;
-            }
-        </style>
-    </head>
     <body>
         <main>
-            <div class="container mt-5 mb-5">
-                <div class="row">
-                    <div class="col-md-5">
-                        <div class="card shadow border-0 p-3">
+            <style>
+                /* Khung ảnh chính */
+                .product-image-box {
+                    background: white;
+                    border-radius: 20px;
+                    padding: 20px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+                    display: flex; align-items: center; justify-content: center;
+                    overflow: hidden; position: relative;
+                    border: 1px solid #f0f0f0;
+                }
+                .main-img {
+                    max-width: 100%; max-height: 450px;
+                    transition: transform 0.5s ease;
+                    object-fit: contain;
+                }
+                .product-image-box:hover .main-img { transform: scale(1.08); }
+
+                /* Thông tin sản phẩm */
+                .product-title { font-weight: 800; color: #333; line-height: 1.3; }
+                .price-badge {
+                    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+                    color: white; padding: 10px 20px; border-radius: 12px;
+                    display: inline-block; box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+                }
+                
+                /* Chính sách (Policy) */
+                .policy-box {
+                    background: #f8f9fa; border-radius: 15px; padding: 20px;
+                    border: 1px dashed #dee2e6;
+                }
+                .policy-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.95rem; color: #555; }
+                .policy-item i { color: #0d6efd; font-size: 1.2rem; }
+
+                /* Nút bấm CTA */
+                .btn-action {
+                    padding: 12px 25px; border-radius: 50px; font-weight: 700;
+                    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    border: none; position: relative; overflow: hidden;
+                }
+                .btn-cart { background-color: #e7f1ff; color: #0d6efd; }
+                .btn-cart:hover { background-color: #d0e4ff; transform: translateY(-3px); }
+                
+                .btn-buy {
+                    background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+                    color: white; box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+                }
+                .btn-buy:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(13, 110, 253, 0.6); color: white; }
+
+                /* Hiệu ứng ảnh bay (Giữ nguyên logic cũ nhưng chỉnh style) */
+                .flying-img {
+                    position: fixed; z-index: 9999; border-radius: 50%;
+                    object-fit: cover; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+                    transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+                    pointer-events: none; border: 2px solid white;
+                }
+                
+                /* Rung giỏ hàng */
+                @keyframes shakeCart {
+                    0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-15deg); } 75% { transform: rotate(15deg); }
+                }
+                .cart-shake { animation: shakeCart 0.5s ease-in-out; }
+            </style>
+            
+            <div class="container mt-5 mb-5 animate__animated animate__fadeIn">
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/home/index" class="text-decoration-none text-muted">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Danh mục</a></li>
+                        <li class="breadcrumb-item active fw-bold text-primary" aria-current="page" th:text="${item.name}">Tên SP</li>
+                    </ol>
+                </nav>
+                
+                <div class="row g-5">
+                    <div class="col-lg-5">
+                        <div class="product-image-box">
+                            <span class="position-absolute top-0 start-0 m-3 badge bg-danger fs-6 rounded-pill px-3 py-2 z-2">-15%</span>
+                            
                             <img id="product-image"
                                  th:src="@{|/images/${item.image}|}"
-                                 class="card-img-top rounded"
-                                 style="object-fit: contain; max-height: 400px;"
-                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/500x400';">
+                                 class="main-img"
+                                 alt="Product Image"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/500x500?text=No+Image';">
                         </div>
                     </div>
                     
-                    <div class="col-md-7">
-                        <h2 class="fw-bold" th:text="${item.name}">Tên sản phẩm</h2>
+                    <div class="col-lg-7">
+                        <h2 class="display-6 product-title mb-3" th:text="${item.name}">Laptop Gaming XYZ</h2>
                         
-                        <div class="mb-3">
-                            <span class="badge bg-warning text-dark me-2">
-                                <i class="bi bi-star-fill"></i> 4.8
-                            </span>
-                            <span class="text-muted">Đã bán: 1.2k | Loại: [[${item.category.name}]]</span>
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="text-warning me-3">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                                <span class="text-muted ms-1 small">(4.8/5 đánh giá)</span>
+                            </div>
+                            <span class="text-muted border-start ps-3 small">Mã SP: <strong class="text-dark">#[[${item.id}]]</strong></span>
+                            <span class="text-muted border-start ps-3 ms-3 small">Loại: <strong class="text-primary">[[${item.category.name}]]</strong></span>
                         </div>
                         
-                        <h1 class="text-danger fw-bold mb-4">
-                            [[${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}]] ₫
-                        </h1>
+                        <div class="mb-4">
+                            <h1 class="price-badge mb-0">
+                                [[${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}]] ₫
+                            </h1>
+                            <span class="text-decoration-line-through text-muted ms-3 fs-5">
+                                [[${#numbers.formatDecimal(item.price * 1.15, 0, 'COMMA', 0, 'POINT')}]] ₫
+                            </span>
+                        </div>
                         
-                        <div class="card bg-light border-0 mb-4">
-                            <div class="card-body">
-                                <p class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i> Bảo hành chính hãng 12 tháng</p>
-                                <p class="mb-1"><i class="bi bi-arrow-repeat text-success me-2"></i> Đổi trả trong 30 ngày</p>
-                                <p class="mb-0"><i class="bi bi-truck text-success me-2"></i> Miễn phí vận chuyển toàn quốc</p>
+                        <p class="text-secondary mb-4" style="line-height: 1.6;">
+                            Sản phẩm chính hãng, hiệu năng vượt trội. Thiết kế hiện đại, phù hợp cho mọi nhu cầu công việc và giải trí.
+                            Đặt hàng ngay hôm nay để nhận ưu đãi đặc biệt.
+                        </p>
+                        
+                        <div class="policy-box mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="policy-item"><i class="bi bi-shield-check"></i> Bảo hành chính hãng 12 tháng</div>
+                                    <div class="policy-item"><i class="bi bi-arrow-repeat"></i> 1 đổi 1 trong 30 ngày</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="policy-item"><i class="bi bi-truck"></i> Freeship toàn quốc</div>
+                                    <div class="policy-item"><i class="bi bi-gift"></i> Tặng kèm Balo cao cấp</div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="d-flex gap-3 mt-4">
-                            
+                        <div class="d-flex gap-3">
                             <button th:onclick="'addToCart(' + ${item.id} + ')'"
-                                    class="btn btn-outline-primary flex-grow-1 py-3 fw-bold fs-5">
-                                <i class="bi bi-cart-plus-fill me-1"></i> Thêm vào giỏ
+                                    class="btn btn-cart btn-action flex-grow-1">
+                                <i class="bi bi-cart-plus-fill me-2"></i> THÊM VÀO GIỎ
                             </button>
                             
                             <a th:href="@{|/cart/buy/${item.id}|}"
-                               class="btn btn-danger flex-grow-1 py-3 fw-bold fs-5 text-white">
-                                <i class="bi bi-lightning-fill me-1"></i> Mua ngay
+                               class="btn btn-buy btn-action flex-grow-1 text-center text-decoration-none">
+                                <i class="bi bi-lightning-charge-fill me-2"></i> MUA NGAY
                             </a>
-                        
                         </div>
                     </div>
                 </div>
                 
-                <div class="mt-5">
-                    <h4 class="text-uppercase fw-bold border-bottom pb-2">Sản phẩm cùng loại</h4>
-                    <p class="text-muted mt-3">Danh sách sản phẩm gợi ý đang cập nhật...</p>
+                <div class="mt-5 pt-5 border-top">
+                    <h4 class="fw-bold mb-4 text-uppercase text-primary"><i class="bi bi-stars"></i> Có thể bạn sẽ thích</h4>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        <div class="col" th:each="i : ${#numbers.sequence(1, 4)}">
+                            <div class="card h-100 border-0 shadow-sm" style="border-radius: 15px; opacity: 0.7;">
+                                <div class="card-body text-center py-5">
+                                    <i class="bi bi-image text-muted fs-1"></i>
+                                    <p class="text-muted mt-2 small">Sản phẩm gợi ý (Coming Soon)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <script>
-                // Hàm 1: Gọi API thêm vào giỏ
                 function addToCart(productId) {
                     fetch('/api/cart/add/' + productId)
                         .then(response => response.json())
@@ -94,73 +169,48 @@
                             if (data.status === 'error') {
                                 window.location.href = "/account/login?message=" + encodeURIComponent(data.message);
                             } else {
-                                // Thành công -> Gọi hàm bay
                                 flyToCart(data.count);
                             }
                         })
-                        .catch(error => console.error('Lỗi kết nối:', error));
+                        .catch(error => console.error('Lỗi:', error));
                 }
             
-                // Hàm 2: Xử lý hiệu ứng bay (Đã nâng cấp độ mượt)
                 function flyToCart(newCount) {
                     const productImg = document.getElementById('product-image');
-                    const cartIcon = document.getElementById('cart-icon-container');
-                    const cartCountBadge = document.getElementById('cart-count');
+                    const cartIcon = document.getElementById('cart-icon-container'); // ID này ở trong fragments.html
+                    const cartCountBadge = document.getElementById('cart-count'); // ID này ở trong fragments.html
             
-                    if (!productImg || !cartIcon) {
-                        console.error("Lỗi: Không tìm thấy ID ảnh hoặc giỏ hàng.");
-                        return;
-                    }
+                    if (!productImg || !cartIcon) return;
             
-                    // 1. Tạo bản sao ảnh
                     const flyImg = productImg.cloneNode();
                     flyImg.classList.add('flying-img');
                     
-                    // 2. Lấy tọa độ
                     const startRect = productImg.getBoundingClientRect();
                     const endRect = cartIcon.getBoundingClientRect();
             
-                    // 3. Đặt vị trí ban đầu (Ảnh gốc)
-                    flyImg.style.position = 'fixed'; // Bắt buộc fixed
                     flyImg.style.top = startRect.top + 'px';
                     flyImg.style.left = startRect.left + 'px';
                     flyImg.style.width = startRect.width + 'px';
                     flyImg.style.height = startRect.height + 'px';
-                    flyImg.style.transition = 'none'; // Tắt hiệu ứng lúc đầu để không bị giật
-            
+                    
                     document.body.appendChild(flyImg);
             
-                    // --- KỸ THUẬT QUAN TRỌNG: CHỜ TRÌNH DUYỆT VẼ XONG ---
-                    // Dùng setTimeout 10ms để tách việc "Tạo ảnh" và "Bay ảnh" ra làm 2 luồng
                     setTimeout(() => {
-                        // Bật lại hiệu ứng chuyển động
-                        flyImg.style.transition = 'all 0.8s cubic-bezier(0.19, 1, 0.22, 1)';
-                        
-                        // Đặt vị trí đích (Giỏ hàng)
                         flyImg.style.top = (endRect.top + 10) + 'px';
                         flyImg.style.left = (endRect.left + 10) + 'px';
                         flyImg.style.width = '30px';
                         flyImg.style.height = '30px';
-                        flyImg.style.opacity = '0.5'; // Mờ dần khi bay tới
+                        flyImg.style.opacity = '0';
                     }, 10);
             
-                    // 4. Dọn dẹp sau khi bay xong (0.8 giây)
                     setTimeout(() => {
-                        flyImg.remove(); // Xóa ảnh bay
-                        
-                        // Cập nhật số lượng
+                        flyImg.remove();
                         if(cartCountBadge) {
                             cartCountBadge.innerText = newCount;
-                            // Hiệu ứng "nảy" số lượng lên
-                            cartCountBadge.style.transform = 'scale(1.5)';
-                            setTimeout(() => cartCountBadge.style.transform = 'scale(1)', 200);
+                            cartCountBadge.classList.add('animate__animated', 'animate__heartBeat');
+                            setTimeout(() => cartCountBadge.classList.remove('animate__animated', 'animate__heartBeat'), 1000);
                         }
-                        
-                        // Rung lắc icon giỏ hàng
-                        cartIcon.classList.add('cart-shake');
-                        setTimeout(() => cartIcon.classList.remove('cart-shake'), 500);
-                        
-                    }, 800); // Thời gian khớp với css transition (0.8s)
+                    }, 800);
                 }
             </script>
         </main>

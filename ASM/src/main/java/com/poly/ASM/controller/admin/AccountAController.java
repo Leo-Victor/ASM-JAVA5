@@ -6,8 +6,11 @@ import com.poly.ASM.service.MailerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 
 @Controller
@@ -18,103 +21,122 @@ public class AccountAController {
     AccountDAO accountDAO;
 
     @Autowired
-    MailerService mailerService; // Tiêm service gửi mail
+    MailerService mailerService; // Khôi phục chức năng gửi mail
 
     // ============================================================
-    // 1. QUẢN LÝ TÀI KHOẢN (CRUD)
+    // 1. QUẢN LÝ TÀI KHOẢN (HIỂN THỊ & FORM)
     // ============================================================
 
-    // Hiển thị danh sách và Form nhập liệu
     @GetMapping("/index")
     public String index(Model model) {
-        // Lấy danh sách tất cả user
+        // 1. Form rỗng để thêm mới
+        Account item = new Account();
+        item.setActivated(true);
+        item.setAdmin(false);
+        model.addAttribute("item", item);
+
+        // 2. Danh sách tài khoản (để hiện bảng bên phải)
         List<Account> items = accountDAO.findAll();
         model.addAttribute("items", items);
 
-        // Tạo đối tượng Account rỗng cho form
-        model.addAttribute("form", new Account());
-
-        return "admin/accounts"; // Trả về giao diện quản lý accounts
+        return "admin/accounts";
     }
 
-    // Chọn user để chỉnh sửa (Đổ dữ liệu lên form)
     @GetMapping("/edit/{username}")
-    public String edit(@PathVariable("username") String username, Model model) {
-        Account acc = accountDAO.findById(username).orElse(new Account());
-        model.addAttribute("form", acc);
+    public String edit(Model model, @PathVariable("username") String username) {
+        // 1. Tìm user đổ lên Form
+        Account item = accountDAO.findById(username).orElse(new Account());
+        model.addAttribute("item", item);
 
-        // Vẫn phải lấy list để hiện bảng bên dưới
+        // 2. Vẫn phải load danh sách bảng bên dưới
         model.addAttribute("items", accountDAO.findAll());
 
         return "admin/accounts";
     }
 
-    // Thêm mới tài khoản
-    @PostMapping("/create")
-    public String create(Account account, Model model) {
+    // ============================================================
+    // 2. LƯU DỮ LIỆU (GỘP CREATE & UPDATE)
+    // Lý do gộp: Để xử lý upload ảnh chung 1 chỗ cho gọn
+    // ============================================================
+    @PostMapping("/save")
+    public String save(@ModelAttribute("item") Account item,
+                       @RequestParam("photoFile") MultipartFile file,
+                       Model model) {
         try {
-            if(accountDAO.existsById(account.getUsername())) {
-                model.addAttribute("message", "Username đã tồn tại!");
+            // --- XỬ LÝ ẢNH AVATAR ---
+            if (!file.isEmpty()) {
+                String fileName = file.getOriginalFilename();
+                File srcFile = new File(System.getProperty("user.dir") + "/src/main/resources/static/images/" + fileName);
+                File targetFile = new File(System.getProperty("user.dir") + "/target/classes/static/images/" + fileName);
+
+                if(!srcFile.getParentFile().exists()) srcFile.getParentFile().mkdirs();
+                if(!targetFile.getParentFile().exists()) targetFile.getParentFile().mkdirs();
+
+                FileCopyUtils.copy(file.getBytes(), srcFile);
+                FileCopyUtils.copy(file.getBytes(), targetFile);
+
+                item.setPhoto(fileName);
             } else {
-                account.setPhoto("user.png"); // Ảnh mặc định
-                accountDAO.save(account);
-                model.addAttribute("message", "Thêm mới thành công!");
+                // Giữ ảnh cũ nếu không chọn ảnh mới
+                if (accountDAO.existsById(item.getUsername())) {
+                    Account oldItem = accountDAO.findById(item.getUsername()).get();
+                    if (item.getPhoto() == null) item.setPhoto(oldItem.getPhoto());
+                }
             }
+
+            // --- XỬ LÝ MẬT KHẨU ---
+            // Nếu bỏ trống mật khẩu thì giữ nguyên mật khẩu cũ
+            if (item.getPassword() == null || item.getPassword().isEmpty()) {
+                if (accountDAO.existsById(item.getUsername())) {
+                    Account oldItem = accountDAO.findById(item.getUsername()).get();
+                    item.setPassword(oldItem.getPassword());
+                }
+            }
+
+            accountDAO.save(item);
+            model.addAttribute("message", "Cập nhật dữ liệu thành công!");
+
         } catch (Exception e) {
-            model.addAttribute("message", "Lỗi thêm mới: " + e.getMessage());
+            model.addAttribute("error", "Lỗi: " + e.getMessage());
         }
 
-        // Reset form và load lại list
-        return "forward:/admin/account/index";
+        return "redirect:/admin/account/index";
     }
 
-    // Cập nhật tài khoản
-    @PostMapping("/update")
-    public String update(Account account, Model model) {
-        try {
-            if(!accountDAO.existsById(account.getUsername())) {
-                model.addAttribute("message", "Username không tồn tại!");
-            } else {
-                accountDAO.save(account);
-                model.addAttribute("message", "Cập nhật thành công!");
-            }
-        } catch (Exception e) {
-            model.addAttribute("message", "Lỗi cập nhật: " + e.getMessage());
-        }
-        return "forward:/admin/account/index";
-    }
+    // ============================================================
+    // 3. CÁC CHỨC NĂNG PHỤ (DELETE, RESET)
+    // ============================================================
 
-    // Xóa tài khoản
     @GetMapping("/delete/{username}")
     public String delete(@PathVariable("username") String username, Model model) {
         try {
             accountDAO.deleteById(username);
             model.addAttribute("message", "Xóa thành công!");
         } catch (Exception e) {
-            model.addAttribute("message", "Không thể xóa (Tài khoản đang có đơn hàng)!");
+            model.addAttribute("error", "Không thể xóa (Tài khoản đang có dữ liệu liên quan)!");
         }
-        return "forward:/admin/account/index";
+        return "redirect:/admin/account/index";
     }
 
-    // Nút làm mới form
     @GetMapping("/reset")
     public String reset() {
         return "redirect:/admin/account/index";
     }
 
     // ============================================================
-    // 2. GỬI EMAIL THÔNG BÁO/KHUYẾN MÃI
+    // 4. GỬI EMAIL (ĐÃ KHÔI PHỤC ĐẦY ĐỦ)
     // ============================================================
 
-    // Hiện form gửi mail cho user cụ thể
+    // Hiển thị form gửi mail riêng cho user
     @GetMapping("/send-mail/{username}")
     public String sendMailForm(@PathVariable("username") String username, Model model) {
         Account user = accountDAO.findById(username).orElse(null);
         if (user != null) {
-            model.addAttribute("user", user); // Gửi thông tin user sang form mail
-            return "admin/mail-form"; // Bạn cần tạo file này (admin/mail-form.html)
+            model.addAttribute("user", user);
+            // Bạn cần đảm bảo có file templates/admin/mail-form.html nhé
+            return "admin/mail-form";
         }
-        return "forward:/admin/account/index";
+        return "redirect:/admin/account/index";
     }
 
     // Xử lý gửi mail
@@ -126,12 +148,12 @@ public class AccountAController {
             Model model) {
         try {
             mailerService.send(to, subject, body);
-            model.addAttribute("message", "Đã gửi mail thành công đến: " + to);
+            model.addAttribute("message", "Đã gửi mail thành công!");
         } catch (Exception e) {
             model.addAttribute("message", "Lỗi gửi mail: " + e.getMessage());
         }
 
-        // Gửi xong quay lại trang danh sách
+        // Gửi xong quay về trang danh sách
         return "forward:/admin/account/index";
     }
 }

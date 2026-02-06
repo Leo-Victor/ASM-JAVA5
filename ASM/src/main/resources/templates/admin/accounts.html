@@ -1,35 +1,168 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/admin/layout-admin :: dynamic(~{::body})}">
     <body>
-        <main>
-            <h3 class="text-primary">QUẢN LÝ TÀI KHOẢN</h3>
-            <div class="row">
-                <div class="col-md-5">
-                    <div class="card">
-                        <div class="card-body">
-                            <form>
-                                <div class="mb-3"><label>Username</label><input type="text" class="form-control"></div>
-                                <div class="mb-3"><label>Họ tên</label><input type="text" class="form-control"></div>
-                                <div class="mb-3"><label>Email</label><input type="email" class="form-control"></div>
-                                <div class="mb-3"><label>Vai trò</label>
-                                    <div class="form-check"><input type="radio" name="role" checked> User</div>
-                                    <div class="form-check"><input type="radio" name="role"> Admin</div>
+        <div class="container-fluid px-4 pt-4">
+            
+            <h3 class="fw-bold text-dark border-start border-5 border-primary ps-3 mb-4">QUẢN LÝ TÀI KHOẢN</h3>
+            
+            <div class="row g-4">
+                
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold text-primary">
+                                <i class="bi bi-person-gear me-2"></i> Thông tin
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form action="/admin/account/save" method="post" enctype="multipart/form-data" th:object="${item}">
+                                
+                                <div class="text-center mb-4">
+                                    <div class="position-relative d-inline-block">
+                                        <img id="previewImage"
+                                             th:src="@{|/images/${item.photo != null ? item.photo : 'user.png'}|}"
+                                             class="rounded-circle border border-3 border-light shadow-sm"
+                                             style="width: 120px; height: 120px; object-fit: cover;"
+                                             onerror="this.src='https://via.placeholder.com/120?text=User'">
+                                        
+                                        <label for="photoFile" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow cursor-pointer" style="cursor: pointer;">
+                                            <i class="bi bi-camera-fill small"></i>
+                                            <input type="file" id="photoFile" name="photoFile" class="d-none" onchange="previewFile(this)" accept="image/*">
+                                        </label>
+                                    </div>
+                                    <input type="hidden" th:field="*{photo}">
                                 </div>
-                                <button class="btn btn-primary w-100">Lưu tài khoản</button>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">Tên đăng nhập <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{username}" class="form-control"
+                                           th:readonly="${item.username != null}" required placeholder="Nhập username...">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">Họ và tên <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{fullname}" class="form-control" required placeholder="Nhập họ tên...">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">Email <span class="text-danger">*</span></label>
+                                    <input type="email" th:field="*{email}" class="form-control" required placeholder="name@example.com">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">Mật khẩu</label>
+                                    <input type="password" th:field="*{password}" class="form-control"
+                                           placeholder="Bỏ trống nếu không đổi pass">
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold small text-muted d-block">Vai trò</label>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" th:field="*{admin}" value="false" id="role1">
+                                            <label class="form-check-label" for="role1">Khách</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" th:field="*{admin}" value="true" id="role2">
+                                            <label class="form-check-label fw-bold text-danger" for="role2">Admin</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold small text-muted d-block">Trạng thái</label>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" th:field="*{activated}" value="true" id="st1">
+                                            <label class="form-check-label text-success" for="st1">Bật</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" th:field="*{activated}" value="false" id="st2">
+                                            <label class="form-check-label text-secondary" for="st2">Tắt</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary fw-bold py-2 shadow-sm">
+                                        <i class="bi bi-save me-1"></i> LƯU TÀI KHOẢN
+                                    </button>
+                                    <a href="/admin/account/index" class="btn btn-light border py-2 text-muted">Làm mới</a>
+                                </div>
                             </form>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-7">
-                    <table class="table table-bordered bg-white">
-                        <thead class="table-dark"><tr><th>User</th><th>Họ tên</th><th>Role</th><th></th></tr></thead>
-                        <tbody>
-                            <tr><td>admin</td><td>Quản trị viên</td><td>Admin</td><td><a href="#">Sửa</a></td></tr>
-                            <tr><td>leo</td><td>Nguyễn Leo</td><td>User</td><td><a href="#">Sửa</a></td></tr>
-                        </tbody>
-                    </table>
+                
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <i class="bi bi-people-fill me-2"></i> Danh sách người dùng
+                            </h5>
+                            <span class="badge bg-secondary rounded-pill">[[${#lists.size(items)}]] User</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light small text-uppercase fw-bold text-secondary">
+                                        <tr>
+                                            <th class="ps-4">Username</th>
+                                            <th>Họ và tên</th>
+                                            <th>Email</th>
+                                            <th>Vai trò</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-end pe-4">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="acc : ${items}">
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center">
+                                                    <img th:src="@{|/images/${acc.photo}|}"
+                                                         class="rounded-circle border" width="40" height="40" style="object-fit: cover;"
+                                                         onerror="this.src='https://via.placeholder.com/40'">
+                                                    <span class="ms-2 fw-bold text-primary">[[${acc.username}]]</span>
+                                                </div>
+                                            </td>
+                                            <td>[[${acc.fullname}]]</td>
+                                            <td class="small text-muted">[[${acc.email}]]</td>
+                                            <td>
+                                                <span th:if="${acc.admin}" class="badge bg-danger">ADMIN</span>
+                                                <span th:unless="${acc.admin}" class="badge bg-info text-dark">USER</span>
+                                            </td>
+                                            <td>
+                                                <span th:if="${acc.activated}" class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                                                <span th:unless="${acc.activated}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Locked</span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <a th:href="@{|/admin/account/edit/${acc.username}|}" class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <a th:href="@{|/admin/account/delete/${acc.username}|}" class="btn btn-sm btn-outline-danger"
+                                                   onclick="return confirm('Bạn có chắc muốn xóa tài khoản này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
+            
+            <div class="mb-5"></div>
+        </div>
+        
+        <script>
+            function previewFile(input) {
+                var file = input.files[0];
+                if(file){
+                    var reader = new FileReader();
+                    reader.onload = function(){ document.getElementById("previewImage").src = reader.result; }
+                    reader.readAsDataURL(file);
+                }
+            }
+        </script>
     </body>
 </html>

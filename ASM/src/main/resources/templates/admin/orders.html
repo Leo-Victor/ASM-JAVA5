@@ -1,68 +1,149 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+      th:replace="~{/admin/layout-admin :: dynamic(~{::body})}">
     <body>
-        <main>
-            <div class="card shadow border-0">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">QUẢN LÝ ĐƠN HÀNG</h5>
-                </div>
-                <div class="card-body">
+        <div class="container-fluid px-4 pt-4">
+            
+            <h3 class="fw-bold text-dark border-start border-5 border-primary ps-3 mb-4">QUẢN LÝ ĐƠN HÀNG</h3>
+            
+            <div th:if="${param.message != null}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> Cập nhật đơn hàng thành công!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div class="row g-4">
+                
+                <div class="col-lg-5">
                     
-                    <div th:if="${order != null}" class="card mb-4 border-warning">
+                    <div th:if="${order == null}" class="card border-0 shadow-sm rounded-4 h-100 py-5 text-center">
                         <div class="card-body">
-                            <h6 class="fw-bold">Cập nhật đơn hàng #[[${order.id}]]</h6>
-                            <form th:action="@{/admin/order/update}" method="post" th:object="${order}">
-                                <div class="row">
-                                    <div class="col-md-2 mb-3">
-                                        <label>Mã ĐH</label>
-                                        <input th:field="*{id}" class="form-control" readonly>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label>Khách hàng</label>
-                                        <input th:field="*{account.username}" class="form-control" readonly>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label>Ngày đặt</label>
-                                        <input th:field="*{createDate}" class="form-control" readonly>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                        <label>Địa chỉ nhận hàng</label>
-                                        <input th:field="*{address}" class="form-control">
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary">Cập nhật</button>
-                                <a href="/admin/order/index" class="btn btn-secondary">Hủy</a>
-                            </form>
+                            <i class="bi bi-receipt display-1 text-muted opacity-25"></i>
+                            <h5 class="mt-3 text-muted">Chọn một đơn hàng để xem chi tiết</h5>
+                            <p class="small text-muted">Click vào nút "Cập nhật" bên danh sách</p>
                         </div>
                     </div>
                     
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Mã ĐH</th>
-                                <th>Khách hàng</th>
-                                <th>Ngày đặt</th>
-                                <th>Địa chỉ</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="o : ${items}">
-                                <td th:text="${o.id}"></td>
-                                <td th:text="${o.account.fullname}"></td>
-                                <td th:text="${o.createDate}"></td>
-                                <td th:text="${o.address}"></td>
-                                <td>
-                                    <a th:href="@{|/admin/order/edit/${o.id}|}" class="btn btn-sm btn-info">
-                                        <i class="bi bi-pencil-square"></i> Xem/Sửa
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div th:if="${order != null}" class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 fw-bold text-primary">
+                                    <i class="bi bi-info-circle me-2"></i> Đơn hàng #[[${order.id}]]
+                                </h5>
+                                <span class="badge rounded-pill px-3 py-2"
+                                      th:classappend="${order.status == 0 ? 'bg-warning text-dark' :
+                                                       (order.status == 1 ? 'bg-primary' :
+                                                       (order.status == 2 ? 'bg-success' : 'bg-danger'))}">
+                                    <span th:if="${order.status == 0}">Chờ xác nhận</span>
+                                    <span th:if="${order.status == 1}">Đang giao hàng</span>
+                                    <span th:if="${order.status == 2}">Đã giao thành công</span>
+                                    <span th:if="${order.status == 3}">Đã hủy</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <form action="/admin/order/update" method="post" class="mb-4 p-3 bg-light rounded-3 border">
+                                <input type="hidden" name="id" th:value="${order.id}">
+                                <label class="form-label fw-bold small text-muted">Cập nhật trạng thái đơn hàng:</label>
+                                <div class="input-group">
+                                    <select name="status" class="form-select fw-bold">
+                                        <option value="0" th:selected="${order.status == 0}">🟡 Chờ xác nhận</option>
+                                        <option value="1" th:selected="${order.status == 1}">🔵 Đang giao hàng</option>
+                                        <option value="2" th:selected="${order.status == 2}">🟢 Đã giao thành công</option>
+                                        <option value="3" th:selected="${order.status == 3}">🔴 Hủy đơn hàng</option>
+                                    </select>
+                                    <button class="btn btn-primary fw-bold">
+                                        <i class="bi bi-save me-1"></i> Lưu
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Thông tin khách hàng</h6>
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-2"><i class="bi bi-person me-2 text-secondary"></i> <strong>Người đặt:</strong> [[${order.account.fullname}]]</li>
+                                <li class="mb-2"><i class="bi bi-calendar3 me-2 text-secondary"></i> <strong>Ngày đặt:</strong> [[${#dates.format(order.createDate, 'dd/MM/yyyy HH:mm')}]]</li>
+                                <li class="mb-2"><i class="bi bi-geo-alt me-2 text-secondary"></i> <strong>Địa chỉ:</strong> [[${order.address}]]</li>
+                                <li class="mb-2"><i class="bi bi-cash-stack me-2 text-secondary"></i> <strong>Tổng tiền:</strong> <span class="text-danger fw-bold fs-6">[[${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}]] ₫</span></li>
+                            </ul>
+                            
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Sản phẩm đã mua</h6>
+                            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm table-borderless align-middle mb-0">
+                                    <tbody>
+                                        <tr th:each="d : ${details}" class="border-bottom">
+                                            <td style="width: 50px;">
+                                                <img th:src="@{|/images/${d.product.image}|}" class="rounded border" width="40" height="40" style="object-fit: cover;">
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark small">[[${d.product.name}]]</div>
+                                                <div class="text-muted" style="font-size: 11px;">
+                                                    [[${#numbers.formatDecimal(d.price, 0, 'COMMA', 0, 'POINT')}]] x [[${d.quantity}]]
+                                                </div>
+                                            </td>
+                                            <td class="text-end fw-bold text-primary small">
+                                                [[${#numbers.formatDecimal(d.price * d.quantity, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <i class="bi bi-list-ul me-2"></i> Danh sách đơn hàng
+                            </h5>
+                            <span class="badge bg-secondary rounded-pill">[[${#lists.size(items)}]] Đơn</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light small text-uppercase fw-bold text-secondary">
+                                        <tr>
+                                            <th class="ps-4">Mã ĐH</th>
+                                            <th>Khách hàng</th>
+                                            <th>Ngày đặt</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Trạng thái</th>
+                                            <th class="text-end pe-4">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="o : ${items}"
+                                            th:classappend="${order != null && order.id == o.id} ? 'table-primary' : ''">
+                                            <td class="ps-4 fw-bold text-primary">#[[${o.id}]]</td>
+                                            <td>
+                                                <div class="fw-bold text-dark">[[${o.account.fullname}]]</div>
+                                                <small class="text-muted">[[${o.account.username}]]</small>
+                                            </td>
+                                            <td class="small">[[${#dates.format(o.createDate, 'dd/MM/yyyy')}]]</td>
+                                            <td class="text-danger fw-bold">[[${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')}]] ₫</td>
+                                            <td>
+                                                <span th:if="${o.status == 0}" class="badge bg-warning text-dark border border-warning">Chờ duyệt</span>
+                                                <span th:if="${o.status == 1}" class="badge bg-primary border border-primary">Đang giao</span>
+                                                <span th:if="${o.status == 2}" class="badge bg-success border border-success">Đã giao</span>
+                                                <span th:if="${o.status == 3}" class="badge bg-danger border border-danger">Đã hủy</span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <a th:href="@{|/admin/order/edit/${o.id}|}" class="btn btn-sm btn-outline-primary shadow-sm">
+                                                    <i class="bi bi-pencil-square me-1"></i> Cập nhật
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
             </div>
-        </main>
+            
+            <div class="mb-5"></div>
+        </div>
     </body>
 </html>

@@ -133,3 +133,61 @@ CREATE TABLE chat_messages (
     timestamp DATETIME DEFAULT GETDATE()
 );
 GO
+
+ALTER TABLE Orders ADD Status INT DEFAULT 0;
+
+ALTER TABLE Orders ADD TotalAmount FLOAT DEFAULT 0;
+
+-- 1. Cập nhật các đơn hàng cũ chưa có trạng thái thành 'Đã giao' (hoặc Chờ duyệt)
+UPDATE Orders 
+SET Status = 2 -- (2 là Đã giao, 0 là Chờ duyệt)
+WHERE Status IS NULL;
+
+-- 2. Cập nhật các đơn hàng cũ có tổng tiền là NULL thành một số tiền giả định (ví dụ 0 hoặc tự tính)
+-- Vì data cũ không lưu tổng tiền nên ta update tạm để hiển thị cho đẹp
+UPDATE Orders 
+SET TotalAmount = 15000000 
+WHERE TotalAmount IS NULL OR TotalAmount = 0;
+
+
+-- 1. Sửa tên Admin
+UPDATE Accounts 
+SET Fullname = N'Nguyễn Văn Quản Lý' 
+WHERE Username = 'admin';
+
+-- 2. Sửa tên Khách hàng mẫu
+UPDATE Accounts 
+SET Fullname = N'Trần Thị Khách Hàng' 
+WHERE Username = 'user';
+
+-- 3. Sửa tên của bạn (Leo)
+UPDATE Accounts 
+SET Fullname = N'Nguyễn Văn Leo' 
+WHERE Username = 'Leo';
+
+
+DROP DATABASE TECH_STORE;
+
+
+-- Chuyển cột Họ tên sang NVARCHAR để lưu tiếng Việt
+ALTER TABLE Accounts ALTER COLUMN Fullname NVARCHAR(100);
+
+UPDATE Accounts SET Fullname = N'Nguyễn Văn Quản Lý' WHERE Username = 'admin';
+UPDATE Accounts SET Fullname = N'Lê Đăng Khoa' WHERE Username = 'Leo';
+UPDATE Accounts SET Fullname = N'Trần Thị Khách Hàng' WHERE Username = 'user';
+
+-- Chuyển cột Name sang NVARCHAR để lưu tiếng Việt
+ALTER TABLE Categories ALTER COLUMN Name NVARCHAR(100);
+
+UPDATE Categories SET Name = N'Ðiện thoại' WHERE Id = '1001';
+UPDATE Categories SET Name = N'Máy tính bảng' WHERE Id = '1002';
+UPDATE Categories SET Name = N'Ðồng hồ thông minh' WHERE Id = '1003';
+
+-- Chuyển cột content sang NVARCHAR để lưu tiếng Việt
+ALTER TABLE chat_messages ALTER COLUMN content NVARCHAR(255);
+
+-- Chuyển cột Address sang NVARCHAR để lưu tiếng Việt
+ALTER TABLE Orders ALTER COLUMN Address NVARCHAR(100);
+
+-- Chuyển cột Name sang NVARCHAR để lưu tiếng Việt
+ALTER TABLE Products ALTER COLUMN Name NVARCHAR(25);

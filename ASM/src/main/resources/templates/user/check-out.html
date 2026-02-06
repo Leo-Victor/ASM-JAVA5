@@ -3,85 +3,137 @@
       th:replace="~{/layout/index :: dynamic(~{::main})}">
     <body>
         <main>
-            <div class="container mt-5 mb-5">
+            <style>
+                .checkout-header { text-align: center; margin-bottom: 40px; }
+                .checkout-title { font-weight: 800; color: #333; letter-spacing: -1px; }
                 
-                <div class="py-4 text-center">
-                    <h2 class="fw-bold text-primary">THANH TOÁN ĐƠN HÀNG</h2>
-                    <p class="lead">Vui lòng kiểm tra kỹ thông tin trước khi đặt hàng.</p>
+                .form-section { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); height: 100%; }
+                .form-label { font-weight: 600; font-size: 0.9rem; color: #555; text-transform: uppercase; margin-bottom: 8px; }
+                .form-control-lg { border-radius: 10px; font-size: 0.95rem; padding: 12px 15px; border: 1px solid #dee2e6; }
+                .form-control-lg:focus { border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1); }
+                
+                .order-summary { background: #f8f9fa; border-radius: 15px; padding: 25px; border: 1px solid #e9ecef; position: sticky; top: 100px; }
+                .summary-item { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #dee2e6; }
+                .summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+                
+                .btn-order {
+                    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+                    border: none; border-radius: 12px; padding: 15px;
+                    font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+                    transition: all 0.3s;
+                }
+                .btn-order:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4); }
+                
+                .steps { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; font-size: 0.9rem; color: #aaa; }
+                .step.active { color: #0d6efd; font-weight: bold; }
+            </style>
+            
+            <div class="container py-5 animate__animated animate__fadeIn">
+                
+                <div class="checkout-header">
+                    <h2 class="display-6 checkout-title mb-2">Thanh Toán Đơn Hàng</h2>
+                    <div class="steps">
+                        <span class="step"><i class="bi bi-cart"></i> Giỏ hàng</span>
+                        <span><i class="bi bi-chevron-right"></i></span>
+                        <span class="step active"><i class="bi bi-credit-card"></i> Thanh toán</span>
+                        <span><i class="bi bi-chevron-right"></i></span>
+                        <span class="step"><i class="bi bi-check-circle"></i> Hoàn tất</span>
+                    </div>
                 </div>
                 
                 <form action="/order/purchase" method="post">
                     <div class="row g-5">
                         
-                        <div class="col-md-7 col-lg-8">
-                            <h4 class="mb-3 text-uppercase fw-bold"><i class="bi bi-geo-alt-fill"></i> Thông tin giao hàng</h4>
-                            
-                            <div class="card shadow-sm border-0">
-                                <div class="card-body p-4">
-                                    <div class="row g-3">
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-bold">Họ và tên</label>
-                                            <input type="text" class="form-control bg-light"
+                        <div class="col-lg-7">
+                            <div class="form-section">
+                                <h5 class="mb-4 fw-bold text-primary"><i class="bi bi-geo-alt-fill me-2"></i> THÔNG TIN GIAO HÀNG</h5>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Họ và tên</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person"></i></span>
+                                            <input type="text" class="form-control form-control-lg border-start-0 ps-0 bg-light"
                                                    th:value="${session.user.fullname}" readonly>
                                         </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-bold">Email (Nhận thông báo)</label>
-                                            <input type="email" class="form-control bg-light"
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                            <input type="email" class="form-control form-control-lg border-start-0 ps-0 bg-light"
                                                    th:value="${session.user.email}" readonly>
                                         </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                                            <input type="text" name="phone" class="form-control" required placeholder="Nhập số điện thoại liên hệ">
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label fw-bold">Địa chỉ nhận hàng <span class="text-danger">*</span></label>
-                                            <input type="text" name="address" class="form-control" required placeholder="Số nhà, tên đường, phường/xã, quận/huyện...">
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <label class="form-label">Ghi chú (Tùy chọn)</label>
-                                            <textarea class="form-control" rows="3" placeholder="Ví dụ: Giao giờ hành chính..."></textarea>
-                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input type="text" name="phone" class="form-control form-control-lg" required placeholder="Nhập số điện thoại người nhận">
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">Địa chỉ nhận hàng <span class="text-danger">*</span></label>
+                                        <input type="text" name="address" class="form-control form-control-lg" required placeholder="Số nhà, tên đường, phường/xã, quận/huyện...">
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">Ghi chú giao hàng</label>
+                                        <textarea name="note" class="form-control" rows="3" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..."></textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="col-md-5 col-lg-4">
-                            <h4 class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="text-primary fw-bold"><i class="bi bi-cart-check"></i> Đơn hàng của bạn</span>
-                                <span class="badge bg-primary rounded-pill">[[${cart.count}]]</span>
-                            </h4>
-                            
-                            <ul class="list-group mb-3 shadow-sm">
-                                <li class="list-group-item d-flex justify-content-between lh-sm"
-                                    th:each="item : ${cart.items}">
-                                    <div>
-                                        <h6 class="my-0 text-truncate" style="max-width: 180px;">[[${item.name}]]</h6>
-                                        <small class="text-muted">x [[${item.qty}]]</small>
-                                    </div>
-                                    <span class="text-muted">
-                                [[${#numbers.formatDecimal(item.price * item.qty, 0, 'COMMA', 0, 'POINT')}]] ₫
-                            </span>
-                                </li>
+                        <div class="col-lg-5">
+                            <div class="order-summary shadow-sm">
+                                <h5 class="d-flex justify-content-between align-items-center mb-4">
+                                    <span class="fw-bold text-dark"><i class="bi bi-bag-check-fill me-2"></i> ĐƠN HÀNG</span>
+                                    <span class="badge bg-primary rounded-pill">[[${cart.count}]] món</span>
+                                </h5>
                                 
-                                <li class="list-group-item d-flex justify-content-between bg-light">
-                                    <span class="fw-bold text-success">Tổng thành tiền (VNĐ)</span>
-                                    <strong class="text-success fs-5">
-                                        [[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫
-                                    </strong>
-                                </li>
-                            </ul>
-                            
-                            <button class="w-100 btn btn-danger btn-lg fw-bold" type="submit">
-                                <i class="bi bi-check2-circle"></i> XÁC NHẬN ĐẶT HÀNG
-                            </button>
-                            <a href="/cart/view" class="w-100 btn btn-outline-secondary mt-2">Quay lại giỏ hàng</a>
+                                <div class="mb-4" style="max-height: 300px; overflow-y: auto;">
+                                    <div th:each="item : ${cart.items}" class="d-flex align-items-center mb-3">
+                                        <div class="flex-shrink-0 me-3">
+                                            <img th:src="@{|/images/${item.image}|}" class="rounded border" width="50" height="50" style="object-fit: cover;">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0 small fw-bold text-truncate" style="max-width: 180px;">[[${item.name}]]</h6>
+                                            <small class="text-muted">x[[${item.qty}]]</small>
+                                        </div>
+                                        <span class="text-muted small fw-bold">
+                                            [[${#numbers.formatDecimal(item.price * item.qty, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-white p-3 rounded border mb-4">
+                                    <div class="summary-item">
+                                        <span class="text-secondary">Tạm tính</span>
+                                        <span class="fw-bold">[[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="text-secondary">Phí vận chuyển</span>
+                                        <span class="text-success fw-bold">Miễn phí</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between pt-2 border-top">
+                                        <span class="fw-bold fs-5">Tổng cộng</span>
+                                        <span class="fw-bold fs-4 text-danger">[[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="w-100 btn btn-primary btn-order btn-lg text-white" type="submit">
+                                    <i class="bi bi-check-circle-fill me-2"></i> XÁC NHẬN ĐẶT HÀNG
+                                </button>
+                                
+                                <div class="text-center mt-3">
+                                    <a href="/cart/view" class="text-decoration-none small text-secondary">
+                                        <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
+                                    </a>
+                                </div>
+                            </div>
                         </div>
+                    
                     </div>
                 </form>
             </div>

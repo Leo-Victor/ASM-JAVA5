@@ -1,35 +1,108 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{/admin/layout-admin :: dynamic(~{::body})}">
     <body>
-        <main>
-            <h2 class="mb-4">TỔNG QUAN HỆ THỐNG</h2>
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="card text-white bg-primary mb-3">
-                        <div class="card-header">Sản phẩm</div>
-                        <div class="card-body"><h5 class="card-title">120 mặt hàng</h5></div>
+        <div class="container-fluid px-4 pt-4">
+            
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h3 class="fw-bold text-dark border-start border-5 border-primary ps-3">
+                    TỔNG QUAN HỆ THỐNG
+                </h3>
+            </div>
+            
+            <div class="row g-4">
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #0d6efd !important;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase small fw-bold text-primary mb-1">Tổng sản phẩm</div>
+                                    <div class="h2 mb-0 fw-bold text-dark">[[${totalProducts}]]</div>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                    <i class="bi bi-box-seam fs-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/admin/product/index" class="card-footer bg-white border-0 text-center small text-decoration-none text-muted py-2 hover-bg">
+                            Xem chi tiết <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card text-white bg-success mb-3">
-                        <div class="card-header">Doanh thu ngày</div>
-                        <div class="card-body"><h5 class="card-title">50.000.000 đ</h5></div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #198754 !important;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase small fw-bold text-success mb-1">Doanh thu thực tế</div>
+                                    <div class="h3 mb-0 fw-bold text-dark">
+                                        [[${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                    </div>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                    <i class="bi bi-currency-dollar fs-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0 small text-muted py-2">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i> Đã trừ đơn hủy/trả hàng
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card text-white bg-warning mb-3">
-                        <div class="card-header">Đơn chờ duyệt</div>
-                        <div class="card-body"><h5 class="card-title">5 đơn hàng</h5></div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #ffc107 !important;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase small fw-bold text-warning mb-1">Đơn chờ duyệt</div>
+                                    <div class="h2 mb-0 fw-bold text-dark">[[${pendingOrders}]]</div>
+                                </div>
+                                <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                                    <i class="bi bi-cart-plus-fill fs-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/admin/order/index" class="card-footer bg-white border-0 text-center small text-decoration-none text-muted py-2 hover-bg">
+                            Xử lý ngay <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card text-white bg-danger mb-3">
-                        <div class="card-header">Khách hàng</div>
-                        <div class="card-body"><h5 class="card-title">1,050 user</h5></div>
+                
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #dc3545 !important;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-uppercase small fw-bold text-danger mb-1">Khách hàng</div>
+                                    <div class="h2 mb-0 fw-bold text-dark">[[${totalUsers}]]</div>
+                                </div>
+                                <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                                    <i class="bi bi-people-fill fs-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="/admin/account/index" class="card-footer bg-white border-0 text-center small text-decoration-none text-muted py-2 hover-bg">
+                            Xem danh sách <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
                     </div>
                 </div>
             </div>
-            <div class="alert alert-info">Chào mừng Admin quay trở lại hệ thống quản trị Tech Store!</div>
-        </main>
+            
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="p-5 bg-white rounded-4 shadow-sm text-center position-relative overflow-hidden">
+                        <div class="position-relative z-1">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2942/2942813.png" width="80" class="mb-3 opacity-75">
+                            <h4 class="fw-bold text-dark">Hệ thống quản trị Tech Store</h4>
+                            <p class="text-muted mb-0">Chúc <strong>Admin</strong> một ngày làm việc hiệu quả và tràn đầy năng lượng! 🚀</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        </div>
     </body>
 </html>

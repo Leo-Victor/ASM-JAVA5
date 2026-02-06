@@ -1,79 +1,88 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+      th:replace="~{/admin/layout-admin :: dynamic(~{::body})}">
     <body>
-        <main>
-            <ul class="nav nav-tabs mb-4">
+        <div class="container-fluid px-4 pt-4">
+            
+            <h3 class="fw-bold text-dark border-start border-5 border-primary ps-3 mb-4">BÁO CÁO THỐNG KÊ</h3>
+            
+            <ul class="nav nav-pills mb-4">
                 <li class="nav-item">
-                    <a class="nav-link"
-                       th:classappend="${currentURI.contains('index')} ? 'active fw-bold' : ''"
+                    <a class="nav-link border me-2 shadow-sm"
+                       th:classappend="${reportType == 'inventory'} ? 'active bg-primary fw-bold' : 'bg-white fw-bold'"
+                       th:style="${reportType == 'inventory'} ? 'color: white !important;' : 'color: black !important;'"
                        href="/admin/report/index">
-                        <i class="bi bi-box-seam"></i> Hàng tồn kho
+                        <i class="bi bi-box-seam me-1"></i> Hàng tồn kho
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link"
-                       th:classappend="${currentURI.contains('revenue')} ? 'active fw-bold' : ''"
+                    <a class="nav-link border me-2 shadow-sm"
+                       th:classappend="${reportType == 'revenue'} ? 'active bg-success fw-bold' : 'bg-white fw-bold'"
+                       th:style="${reportType == 'revenue'} ? 'color: white !important;' : 'color: black !important;'"
                        href="/admin/report/revenue">
-                        <i class="bi bi-cash-coin"></i> Doanh thu
+                        <i class="bi bi-cash-coin me-1"></i> Doanh thu
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link"
-                       th:classappend="${currentURI.contains('vip')} ? 'active fw-bold' : ''"
+                    <a class="nav-link border shadow-sm bg-white fw-bold"
+                       style="color: black !important;"
                        href="/admin/report/vip">
-                        <i class="bi bi-star-fill text-warning"></i> Khách hàng VIP
+                        <i class="bi bi-star-fill text-warning me-1"></i> Khách hàng VIP
                     </a>
                 </li>
             </ul>
-            <div class="card shadow border-0">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-bar-chart-fill"></i> THỐNG KÊ HÀNG TỒN KHO</h5>
+            
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header py-3 text-white"
+                     th:classappend="${reportType == 'inventory'} ? 'bg-primary' : 'bg-success'">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi" th:classappend="${reportType == 'inventory'} ? 'bi-box-seam' : 'bi-graph-up'"></i>
+                        [[${title}]]
+                    </h5>
                 </div>
-                <div class="card-body">
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-12 text-center">
-                            <div class="alert alert-info">
-                                Báo cáo chi tiết số lượng và giá trị hàng hóa theo từng danh mục.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <table class="table table-bordered table-striped table-hover text-center align-middle">
-                        <thead class="table-dark">
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="bg-light text-secondary">
                             <tr>
-                                <th>Loại hàng</th>
-                                <th>Số lượng SP</th>
+                                <th class="text-start ps-4">Loại hàng</th>
+                                <th th:text="${reportType == 'inventory'} ? 'Tổng số SP' : 'Số SP đã bán'">Số lượng</th>
                                 <th>Tổng giá trị</th>
-                                <th>Giá trung bình</th>
+                                <th th:text="${reportType == 'inventory'} ? 'Giá trung bình' : 'Giá bán cao nhất'">Trung bình</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="c : ${items}">
-                                <td class="text-start fw-bold text-primary" th:text="${c.name}">Laptop</td>
+                            <tr th:each="row : ${items}">
+                                <td class="text-start ps-4 fw-bold text-primary">[[${row.group}]]</td>
                                 
-                                <td th:text="${c.products.size()}">10</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        [[${row.count}]]
+                                    </span>
+                                </td>
                                 
                                 <td class="text-danger fw-bold">
-                                    [[${#numbers.formatDecimal(c.products.size() * 15000000, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                    [[${#numbers.formatDecimal(row.sum, 0, 'COMMA', 0, 'POINT')}]] ₫
                                 </td>
                                 
                                 <td>
-                                    [[${#numbers.formatDecimal(15000000, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                    <span th:if="${reportType == 'inventory'}">
+                                        [[${#numbers.formatDecimal(row.avg, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                    </span>
+                                    <span th:if="${reportType == 'revenue'}">
+                                        [[${#numbers.formatDecimal(row.max, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                    </span>
                                 </td>
+                            </tr>
+                            
+                            <tr th:if="${items.empty}">
+                                <td colspan="4" class="py-4 text-muted">Chưa có dữ liệu thống kê.</td>
                             </tr>
                         </tbody>
-                        <tfoot class="table-light fw-bold">
-                            <tr>
-                                <td colspan="4" class="text-end text-muted">
-                                    * Số liệu được cập nhật theo thời gian thực
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
-        </main>
+            
+            <div class="mb-5"></div>
+        </div>
     </body>
 </html>

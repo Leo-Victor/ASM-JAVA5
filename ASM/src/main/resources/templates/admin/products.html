@@ -1,92 +1,87 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{/admin/layout-admin :: dynamic(~{::main})}">
+      th:replace="~{/admin/layout-admin :: dynamic(~{::body})}">
     <body>
-        <main>
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Quản lý Hàng hóa</h1>
-            </div>
+        <div class="container-fluid px-4 pt-4">
             
-            <div class="card shadow border-0 mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam"></i> THÔNG TIN SẢN PHẨM</h5>
+            <h3 class="fw-bold text-dark border-start border-5 border-primary ps-3 mb-4">QUẢN LÝ HÀNG HÓA</h3>
+            
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="bi bi-pencil-square me-2"></i> Thông tin sản phẩm
+                    </h5>
                 </div>
-                <div class="card-body">
-                    
-                    <form th:action="@{/admin/product/index}" method="post" th:object="${item}" enctype="multipart/form-data">
-                        
-                        <div class="row">
-                            <div class="col-md-4 text-center">
-                                <div class="p-3 border rounded bg-light">
-                                    <label class="form-label fw-bold">Hình ảnh sản phẩm</label>
+                <div class="card-body p-4">
+                    <form action="/admin/product/save" method="post" enctype="multipart/form-data" th:object="${item}">
+                        <div class="row g-4">
+                            <div class="col-md-3 text-center">
+                                <div class="border border-2 border-dashed rounded-3 p-3 bg-light position-relative upload-box"
+                                     style="border-style: dashed !important; border-color: #dee2e6;">
                                     
-                                    <div class="mb-3">
-                                        <img id="previewImage"
-                                             th:src="@{|/images/*{image}|}"
-                                             class="img-fluid img-thumbnail"
-                                             style="max-height: 250px; object-fit: contain;"
-                                             onerror="this.src='https://via.placeholder.com/250x250?text=No+Image'">
+                                    <img id="previewImage"
+                                         th:src="@{|/images/${item.image != null ? item.image : 'placeholder.png'}|}"
+                                         class="img-fluid rounded shadow-sm mb-2"
+                                         style="max-height: 180px; object-fit: contain; display: block; margin: 0 auto;"
+                                         onerror="this.style.display='none'; document.getElementById('placeholder-icon').style.display='block';">
+                                    
+                                    <div id="placeholder-icon" class="text-muted my-3"
+                                         th:style="${item.image != null} ? 'display:none' : 'display:block'">
+                                        <i class="bi bi-cloud-arrow-up display-4 text-secondary opacity-50"></i>
+                                        <div class="small mt-2">Kéo thả hoặc click để tải ảnh</div>
                                     </div>
                                     
-                                    <input type="file" name="imageFile" class="form-control mb-2" onchange="preview(this)">
-                                    
-                                    <input type="hidden" th:field="*{image}">
-                                    <small class="text-muted fst-italic">Hỗ trợ: .jpg, .png (Max 5MB)</small>
+                                    <input type="file" name="imageFile"
+                                           class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer"
+                                           onchange="previewFile(this)" accept="image/*" title="Chọn ảnh">
                                 </div>
+                                <input type="hidden" th:field="*{image}">
                             </div>
                             
-                            <div class="col-md-8">
-                                <div class="row">
-                                    <div class="col-md-12 mb-3" th:if="*{id != null}">
-                                        <label class="fw-bold">Mã sản phẩm</label>
-                                        <input th:field="*{id}" class="form-control bg-light" readonly>
+                            <div class="col-md-9">
+                                <div class="row g-3">
+                                    <div class="col-md-2" th:if="${item.id != null}">
+                                        <label class="form-label fw-bold small text-muted">Mã SP</label>
+                                        <input type="text" class="form-control bg-light fw-bold" th:field="*{id}" readonly>
+                                    </div>
+                                    <div class="col-md-10" th:classappend="${item.id == null ? 'col-md-12' : ''}">
+                                        <label class="form-label fw-bold small text-muted">Tên sản phẩm <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" th:field="*{name}" required placeholder="Nhập tên sản phẩm...">
                                     </div>
                                     
-                                    <div class="col-md-12 mb-3">
-                                        <label class="fw-bold">Tên sản phẩm <span class="text-danger">*</span></label>
-                                        <input th:field="*{name}" class="form-control" required placeholder="Nhập tên sản phẩm...">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-muted">Giá bán <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control fw-bold text-danger" th:field="*{price}" required min="0">
+                                            <span class="input-group-text">₫</span>
+                                        </div>
                                     </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="fw-bold">Giá bán (VNĐ) <span class="text-danger">*</span></label>
-                                        <input th:field="*{price}" type="number" class="form-control" required>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="fw-bold">Loại hàng</label>
-                                        <select th:field="*{category.id}" class="form-select">
-                                            <option th:each="c : ${categories}"
-                                                    th:value="${c.id}"
-                                                    th:text="${c.name}"></option>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-muted">Danh mục</label>
+                                        <select class="form-select" th:field="*{category.id}">
+                                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
                                         </select>
                                     </div>
-                                    
-                                    <div class="col-md-12 mb-3">
-                                        <label class="fw-bold d-block">Trạng thái kinh doanh</label>
-                                        <div class="form-check form-check-inline">
-                                            <input th:field="*{available}" class="form-check-input" type="radio" value="true" checked>
-                                            <label class="form-check-label text-success fw-bold">Đang bán</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input th:field="*{available}" class="form-check-input" type="radio" value="false">
-                                            <label class="form-check-label text-secondary">Ngưng bán</label>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small text-muted d-block">Trạng thái</label>
+                                        <div class="mt-2">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" th:field="*{available}" value="true" id="st1">
+                                                <label class="form-check-label text-success fw-bold" for="st1">Đang bán</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" th:field="*{available}" value="false" id="st2">
+                                                <label class="form-check-label text-secondary fw-bold" for="st2">Ngưng</label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div class="mt-3">
-                                    <button th:formaction="@{/admin/product/create}" class="btn btn-primary px-4">
-                                        <i class="bi bi-plus-circle"></i> Thêm mới
+                                <div class="mt-4 pt-3 border-top text-end">
+                                    <a href="/admin/product/index" class="btn btn-light border me-2">Làm mới</a>
+                                    <button class="btn btn-primary fw-bold px-4 shadow-sm">
+                                        <i class="bi bi-save me-1"></i> [[${item.id != null ? 'LƯU THAY ĐỔI' : 'THÊM MỚI'}]]
                                     </button>
-                                    
-                                    <button th:formaction="@{/admin/product/update}" class="btn btn-success px-4"
-                                            th:disabled="*{id == null}">
-                                        <i class="bi bi-save"></i> Cập nhật
-                                    </button>
-                                    
-                                    <a th:href="@{/admin/product/reset}" class="btn btn-secondary px-4">
-                                        <i class="bi bi-arrow-clockwise"></i> Làm mới
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -94,101 +89,89 @@
                 </div>
             </div>
             
-            <div class="card shadow border-0">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0 fw-bold">DANH SÁCH SẢN PHẨM</h5>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-list-ul me-2"></i> Danh sách sản phẩm
+                    </h5>
                 </div>
                 <div class="card-body p-0">
-                    <table class="table table-striped table-hover align-middle mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th class="text-center">Hình</th>
-                                <th>Tên hàng</th>
-                                <th>Giá</th>
-                                <th>Loại</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="p : ${items}">
-                                <td class="text-center">
-                                    <img th:src="@{|/images/${p.image}|}"
-                                         style="width: 50px; height: 50px; object-fit: cover;"
-                                         class="rounded border shadow-sm"
-                                         alt="Img"
-                                         onerror="this.onerror=null; this.src='https://via.placeholder.com/50?text=No+Img';">
-                                </td>
-                                <td th:text="${p.name}" class="fw-bold"></td>
-                                <td th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                                <td th:text="${p.category.name}"></td>
-                                <td>
-                                    <span th:if="${p.available}" class="badge bg-success">Đang bán</span>
-                                    <span th:unless="${p.available}" class="badge bg-secondary">Ngưng</span>
-                                </td>
-                                <td>
-                                    <a th:href="@{|/admin/product/edit/${p.id}|}" class="btn btn-sm btn-primary me-1">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a th:href="@{|/admin/product/delete/${p.id}|}" class="btn btn-sm btn-danger"
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light small text-uppercase fw-bold text-secondary">
+                                <tr>
+                                    <th class="ps-4">Hình ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Giá bán</th>
+                                    <th>Loại</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="p : ${items.content}">
+                                    <td class="ps-4">
+                                        <img th:src="@{|/images/${p.image}|}" class="rounded border" width="50" height="50" style="object-fit: cover;"
+                                             onerror="this.src='https://via.placeholder.com/50?text=IMG'">
+                                    </td>
+                                    <td class="fw-bold text-dark">[[${p.name}]]</td>
+                                    <td class="text-danger fw-bold">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</td>
+                                    <td><span class="badge bg-light text-dark border">[[${p.category.name}]]</span></td>
+                                    <td>
+                                        <span th:if="${p.available}" class="badge bg-success-subtle text-success border border-success-subtle">Đang bán</span>
+                                        <span th:unless="${p.available}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Ngưng</span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a th:href="@{|/admin/product/edit/${p.id}?p=${items.number}|}" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil-square"></i></a>
+                                        <a th:href="@{|/admin/product/delete/${p.id}|}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa nhé?')"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 
-                <div class="card-footer text-center bg-white" th:if="${items.totalPages > 0}">
+                <div class="card-footer bg-white border-0 py-3" th:if="${items.totalPages > 1}">
                     <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center mb-0 shadow-sm">
-                            
+                        <ul class="pagination justify-content-center mb-0">
                             <li class="page-item" th:classappend="${items.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/product/index(p=0)}">
-                                    <i class="bi bi-chevron-double-left"></i>
-                                </a>
+                                <a class="page-link border-0" th:href="@{/admin/product/index(p=0)}"><i class="bi bi-chevron-double-left"></i></a>
                             </li>
-                            
                             <li class="page-item" th:classappend="${items.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/product/index(p=${items.number - 1})}">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
+                                <a class="page-link border-0" th:href="@{|/admin/product/index?p=${items.number - 1}|}"><i class="bi bi-chevron-left"></i></a>
                             </li>
-                            
                             <li class="page-item disabled">
-                                <a class="page-link fw-bold text-dark">
-                                    Trang [[${items.number + 1}]] / [[${items.totalPages}]]
-                                </a>
+                                <span class="page-link border-0 fw-bold text-dark">Trang [[${items.number + 1}]] / [[${items.totalPages}]]</span>
                             </li>
-                            
                             <li class="page-item" th:classappend="${items.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/product/index(p=${items.number + 1})}">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
+                                <a class="page-link border-0" th:href="@{|/admin/product/index?p=${items.number + 1}|}"><i class="bi bi-chevron-right"></i></a>
                             </li>
-                            
                             <li class="page-item" th:classappend="${items.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/admin/product/index(p=${items.totalPages - 1})}">
-                                    <i class="bi bi-chevron-double-right"></i>
-                                </a>
+                                <a class="page-link border-0" th:href="@{|/admin/product/index?p=${items.totalPages - 1}|}"><i class="bi bi-chevron-double-right"></i></a>
                             </li>
                         </ul>
                     </nav>
                 </div>
             </div>
-            
-            <script>
-                function preview(input) {
-                    if (input.files && input.files[0]) {
-                        var reader = new FileReader();
-                        reader.onload = function (e) {
-                            document.getElementById('previewImage').src = e.target.result;
-                        }
-                        reader.readAsDataURL(input.files[0]);
+        </div>
+        
+        <script>
+            function previewFile(input) {
+                var file = input.files[0];
+                if(file){
+                    var reader = new FileReader();
+                    reader.onload = function(e){
+                        document.getElementById("previewImage").src = e.target.result;
+                        document.getElementById("previewImage").style.display = 'block';
+                        document.getElementById("placeholder-icon").style.display = 'none';
                     }
+                    reader.readAsDataURL(file);
                 }
-            </script>
-        </main>
+            }
+        </script>
+        
+        <style>
+            .upload-box:hover { background-color: #f1f3f5 !important; border-color: #0d6efd !important; }
+        </style>
     </body>
 </html>

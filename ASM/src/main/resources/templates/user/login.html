@@ -3,60 +3,95 @@
       th:replace="~{/layout/index :: dynamic(~{::main})}">
     <body>
         <main>
-            <div class="container mt-5 mb-5">
-                <div class="row justify-content-center">
-                    <div class="col-md-5"> <div class="card shadow-lg border-0 rounded-3">
-                        
-                        <div class="card-header bg-primary text-white text-center py-3">
-                            <h4 class="mb-0 fw-bold text-uppercase">Đăng Nhập</h4>
-                        </div>
-                        
-                        <div class="card-body p-4">
-                            
-                            <div th:if="${message != null}" class="alert alert-danger text-center">
-                                <i class="bi bi-exclamation-triangle-fill"></i> [[${message}]]
-                            </div>
-                            
-                            <form action="/account/login" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Tên đăng nhập</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                                        <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required>
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Mật khẩu</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                                        <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-grid gap-2 mt-4">
-                                    <button class="btn btn-primary btn-lg fw-bold" type="submit">
-                                        ĐĂNG NHẬP
-                                    </button>
-                                </div>
-                            </form>
-                            
-                            <hr class="my-4">
-                            
-                            <div class="text-center">
-                                <p class="mb-2">
-                                    Chưa có tài khoản?
-                                    <a href="/account/sign-up" class="text-decoration-none fw-bold text-primary">
-                                        Đăng ký ngay
-                                    </a>
-                                </p>
-                                <a href="/account/forgot-password" class="text-muted small text-decoration-none">
-                                    <i class="bi bi-question-circle"></i> Quên mật khẩu?
-                                </a>
-                            </div>
-                        
-                        </div>
+            <style>
+                .login-container {
+                    min-height: 80vh;
+                    display: flex; align-items: center; justify-content: center;
+                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                }
+                .login-card {
+                    border: none; border-radius: 20px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+                    background: rgba(255, 255, 255, 0.95);
+                    overflow: hidden; max-width: 450px; width: 100%;
+                }
+                .login-header {
+                    background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+                    padding: 30px; text-align: center; color: white;
+                }
+                .form-control-custom {
+                    background: #f8f9fa; border: 1px solid #e9ecef;
+                    border-radius: 10px; padding: 12px 15px;
+                    padding-left: 45px; /* Để chỗ cho icon */
+                }
+                .form-control-custom:focus {
+                    background: white; border-color: #0d6efd;
+                    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+                }
+                .input-icon {
+                    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+                    color: #adb5bd; transition: color 0.3s;
+                }
+                .input-group-custom:focus-within .input-icon { color: #0d6efd; }
+                
+                .btn-login {
+                    background: linear-gradient(90deg, #0d6efd 0%, #0056b3 100%);
+                    border: none; border-radius: 50px; padding: 12px;
+                    font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+                    transition: transform 0.2s;
+                }
+                .btn-login:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); color: white; }
+            </style>
+            
+            <div class="login-container animate__animated animate__fadeIn">
+                <div class="login-card">
+                    
+                    <div class="login-header">
+                        <i class="bi bi-person-circle display-4 mb-2"></i>
+                        <h4 class="fw-bold text-uppercase m-0">Đăng Nhập</h4>
+                        <p class="small opacity-75 mb-0">Chào mừng bạn quay trở lại Tech Store</p>
                     </div>
+                    
+                    <div class="card-body p-4 p-md-5">
+                        
+                        <div th:if="${message != null}" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>[[${message}]]</div>
+                        </div>
+                        
+                        <form action="/account/login" method="post">
+                            <div class="mb-4 position-relative input-group-custom">
+                                <i class="bi bi-envelope-fill input-icon"></i>
+                                <input type="text" name="username" class="form-control form-control-custom" placeholder="Tên đăng nhập hoặc Email" required>
+                            </div>
+                            
+                            <div class="mb-4 position-relative input-group-custom">
+                                <i class="bi bi-lock-fill input-icon"></i>
+                                <input type="password" name="password" class="form-control form-control-custom" placeholder="Mật khẩu" required>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
+                                    <label class="form-check-label small text-secondary" for="rememberMe">Ghi nhớ</label>
+                                </div>
+                                <a href="/account/forgot-password" class="small text-decoration-none text-primary fw-bold">Quên mật khẩu?</a>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button class="btn btn-primary btn-login" type="submit">
+                                    Đăng Nhập <i class="bi bi-arrow-right-circle ms-2"></i>
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <p class="small text-muted mb-2">Bạn chưa có tài khoản?</p>
+                            <a href="/account/sign-up" class="btn btn-outline-primary rounded-pill btn-sm fw-bold px-4">
+                                Tạo tài khoản mới
+                            </a>
+                        </div>
+                    
                     </div>
                 </div>
             </div>

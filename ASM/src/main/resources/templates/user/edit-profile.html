@@ -3,61 +3,84 @@
       th:replace="~{/layout/index :: dynamic(~{::main})}">
     <body>
         <main>
-            <div class="container mt-5 mb-5">
+            <style>
+                .profile-card { border: none; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); overflow: hidden; }
+                .profile-header { background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%); padding: 25px; color: white; }
+                
+                /* Avatar Upload Effect */
+                .avatar-wrapper { position: relative; width: 160px; height: 160px; margin: 0 auto; }
+                .avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 5px solid rgba(255,255,255,0.8); box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: all 0.3s; }
+                .avatar-overlay {
+                    position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%;
+                    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+                    opacity: 0; transition: all 0.3s; cursor: pointer; color: white; font-size: 2rem;
+                }
+                .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+                
+                .form-label { font-weight: 600; font-size: 0.9rem; color: #555; }
+                .form-control-custom { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px 15px; }
+                .form-control-custom:focus { background: white; border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1); }
+                
+                .btn-save { background: linear-gradient(90deg, #0d6efd 0%, #0056b3 100%); border: none; padding: 10px 30px; border-radius: 50px; font-weight: bold; transition: transform 0.2s; }
+                .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); color: white; }
+            </style>
+            
+            <div class="container py-5 animate__animated animate__fadeIn">
                 <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header bg-primary text-white py-3">
-                                <h5 class="mb-0 fw-bold text-uppercase"><i class="bi bi-person-lines-fill"></i> Hồ sơ cá nhân</h5>
+                    <div class="col-lg-9">
+                        <div class="card profile-card">
+                            <div class="profile-header d-flex align-items-center">
+                                <h4 class="mb-0 fw-bold text-uppercase"><i class="bi bi-person-lines-fill me-2"></i> Hồ sơ cá nhân</h4>
                             </div>
-                            <div class="card-body p-4">
-                                
-                                <div th:if="${message != null}" class="alert alert-success text-center">
-                                    <i class="bi bi-check-circle-fill"></i> [[${message}]]
+                            
+                            <div class="card-body p-4 p-md-5">
+                                <div th:if="${message != null}" class="alert alert-success d-flex align-items-center rounded-3 shadow-sm mb-4">
+                                    <i class="bi bi-check-circle-fill fs-4 me-2"></i> <span>[[${message}]]</span>
                                 </div>
-                                <div th:if="${error != null}" class="alert alert-danger text-center">
-                                    <i class="bi bi-exclamation-triangle-fill"></i> [[${error}]]
+                                <div th:if="${error != null}" class="alert alert-danger d-flex align-items-center rounded-3 shadow-sm mb-4">
+                                    <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i> <span>[[${error}]]</span>
                                 </div>
                                 
                                 <form action="/account/edit-profile" method="post" th:object="${user}" enctype="multipart/form-data">
-                                    
-                                    <div class="row mb-4">
-                                        <div class="col-md-4 text-center">
-                                            <img id="avatarPreview"
-                                                 th:src="@{|/images/${user.photo}|}"
-                                                 class="img-thumbnail rounded-circle mb-3 shadow-sm"
-                                                 style="width: 150px; height: 150px; object-fit: cover;"
-                                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/150?text=User';">
-                                            
-                                            <div class="d-grid">
-                                                <label class="btn btn-outline-primary btn-sm cursor-pointer">
-                                                    <i class="bi bi-camera-fill"></i> Chọn ảnh mới
-                                                    <input type="file" name="photoFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                                    <div class="row g-5">
+                                        <div class="col-md-4 text-center border-end-md">
+                                            <div class="avatar-wrapper mb-3">
+                                                <img id="avatarPreview" th:src="@{|/images/${user.photo != null ? user.photo : 'user.png'}|}" class="avatar-img">
+                                                <label class="avatar-overlay" for="upload-input">
+                                                    <i class="bi bi-camera-fill"></i>
                                                 </label>
+                                                <input type="file" id="upload-input" name="photoFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
                                             </div>
-                                            <small class="text-muted fst-italic mt-2 d-block">(Tối đa 5MB)</small>
+                                            <h5 class="fw-bold mb-1">[[${user.fullname}]]</h5>
+                                            <p class="text-muted small">@[[${user.username}]]</p>
+                                            <p class="text-secondary small fst-italic mt-2">Dung lượng tối đa: 5MB</p>
                                         </div>
                                         
                                         <div class="col-md-8">
                                             <div class="mb-3">
-                                                <label class="form-label fw-bold">Tên đăng nhập</label>
-                                                <input type="text" class="form-control bg-light" th:field="*{username}" readonly>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold">Họ và tên</label>
-                                                <input type="text" class="form-control" th:field="*{fullname}" name="fullname" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold">Email</label>
-                                                <input type="email" class="form-control" th:field="*{email}" name="email" required>
+                                                <label class="form-label">Tên đăng nhập</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-0"><i class="bi bi-shield-lock"></i></span>
+                                                    <input type="text" class="form-control bg-light border-0 fw-bold text-secondary" th:field="*{username}" readonly>
+                                                </div>
                                             </div>
                                             
-                                            <div class="d-flex justify-content-between align-items-center mt-4">
-                                                <a href="/account/change-password" class="text-decoration-none text-muted">
-                                                    <i class="bi bi-key"></i> Đổi mật khẩu
+                                            <div class="mb-3">
+                                                <label class="form-label">Họ và tên</label>
+                                                <input type="text" class="form-control form-control-custom" th:field="*{fullname}" placeholder="Nhập họ tên..." required>
+                                            </div>
+                                            
+                                            <div class="mb-4">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" class="form-control form-control-custom" th:field="*{email}" placeholder="Nhập email..." required>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                                                <a href="/account/change-password" class="text-decoration-none fw-bold text-secondary">
+                                                    <i class="bi bi-key me-1"></i> Đổi mật khẩu
                                                 </a>
-                                                <button class="btn btn-primary fw-bold px-4" type="submit">
-                                                    <i class="bi bi-save"></i> CẬP NHẬT
+                                                <button class="btn btn-primary btn-save text-white" type="submit">
+                                                    <i class="bi bi-check2-circle me-1"></i> LƯU THAY ĐỔI
                                                 </button>
                                             </div>
                                         </div>
@@ -74,14 +97,12 @@
                     if (input.files && input.files[0]) {
                         var reader = new FileReader();
                         reader.onload = function (e) {
-                            // Gán link ảnh vừa chọn vào thẻ img preview
                             document.getElementById('avatarPreview').src = e.target.result;
                         }
                         reader.readAsDataURL(input.files[0]);
                     }
                 }
             </script>
-        
         </main>
     </body>
 </html>

@@ -3,85 +3,152 @@
       th:replace="~{/layout/index :: dynamic(~{::main})}">
     <body>
         <main>
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-uppercase"><i class="bi bi-cart3 me-2"></i>Giỏ hàng của bạn</h5>
+            <style>
+                .cart-header { background-color: #f8f9fa; border-radius: 15px 15px 0 0; border-bottom: 2px solid #e9ecef; }
+                .cart-card { border: none; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: hidden; }
+                
+                /* Style cho bảng */
+                .table-custom th { border: none; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; color: #6c757d; padding: 15px; }
+                .table-custom td { border-bottom: 1px solid #f0f0f0; padding: 20px 15px; vertical-align: middle; }
+                .table-custom tr:last-child td { border-bottom: none; }
+                
+                /* Input số lượng */
+                .qty-input {
+                    width: 60px; text-align: center; border: 1px solid #dee2e6;
+                    border-radius: 8px; padding: 5px; font-weight: bold; color: #333;
+                }
+                .qty-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1); }
+                
+                /* Nút xóa */
+                .btn-trash { color: #aaa; transition: all 0.2s; font-size: 1.2rem; }
+                .btn-trash:hover { color: #dc3545; transform: scale(1.2); }
+                
+                /* Box tổng tiền */
+                .summary-box {
+                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                    border-radius: 15px; padding: 25px; height: 100%;
+                }
+                .checkout-btn {
+                    background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+                    color: white; border: none; padding: 15px; border-radius: 10px;
+                    width: 100%; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+                    transition: transform 0.2s;
+                }
+                .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); color: white; }
+            </style>
+            
+            <div class="container py-5 animate__animated animate__fadeIn">
+                <div class="d-flex align-items-center mb-4">
+                    <h3 class="fw-bold text-primary m-0"><i class="bi bi-bag-check-fill me-2"></i> GIỎ HÀNG CỦA BẠN</h3>
+                    <span class="badge bg-light text-dark border ms-3" th:text="${cart.count} + ' sản phẩm'">0 sản phẩm</span>
                 </div>
                 
-                <div class="card-body">
-                    <div th:if="${cart.count == 0}" class="text-center py-5">
-                        <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" width="120" class="mb-3 opacity-50">
-                        <h5 class="text-muted">Giỏ hàng đang trống!</h5>
-                        <p class="mb-4">Hãy dạo một vòng và chọn những món đồ ưng ý nhé.</p>
-                        <a href="/home/index" class="btn btn-primary px-4 fw-bold">
-                            <i class="bi bi-arrow-left me-2"></i> Tiếp tục mua sắm
-                        </a>
+                <div th:if="${cart.count == 0}" class="text-center py-5 bg-white rounded-4 shadow-sm">
+                    <div class="mb-4">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="120" style="opacity: 0.3;">
                     </div>
-                    
-                    <div th:if="${cart.count > 0}">
-                        <div class="table-responsive">
-                            <table class="table align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Sản phẩm</th>
-                                        <th class="text-center">Giá</th>
-                                        <th class="text-center" style="width: 120px;">Số lượng</th>
-                                        <th class="text-center">Thành tiền</th>
-                                        <th class="text-center">Xóa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="item : ${cart.items}">
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <img th:src="@{|/images/${item.image}|}" class="rounded border me-3"
-                                                     width="60" height="60" style="object-fit: cover;">
-                                                <div>
-                                                    <h6 class="mb-0 fw-bold">[[${item.name}]]</h6>
-                                                    <small class="text-muted">Mã: #[[${item.id}]]</small>
+                    <h4 class="fw-bold text-muted">Giỏ hàng của bạn đang trống</h4>
+                    <p class="text-secondary mb-4">Có vẻ như bạn chưa chọn được món đồ nào ưng ý.</p>
+                    <a href="/home/index" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-cart-plus me-2"></i> Mua sắm ngay
+                    </a>
+                </div>
+                
+                <div th:if="${cart.count > 0}" class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="card cart-card">
+                            <div class="table-responsive">
+                                <table class="table table-custom mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th width="45%">Sản phẩm</th>
+                                            <th class="text-center" width="15%">Đơn giá</th>
+                                            <th class="text-center" width="15%">Số lượng</th>
+                                            <th class="text-end" width="15%">Thành tiền</th>
+                                            <th class="text-center" width="10%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="item : ${cart.items}">
+                                            <td>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="bg-light rounded p-2 border" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                                                        <img th:src="@{|/images/${item.image}|}" style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                             onerror="this.src='https://via.placeholder.com/60'">
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1 fw-bold text-dark">[[${item.name}]]</h6>
+                                                        <small class="text-muted">Mã: #[[${item.id}]]</small>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-center text-muted">
-                                            [[${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}]] ₫
-                                        </td>
-                                        
-                                        <td>
-                                            <form action="/cart/update" method="post">
-                                                <input type="hidden" name="id" th:value="${item.id}">
-                                                <input type="number" name="qty" th:value="${item.qty}"
-                                                       onchange="this.form.submit()"
-                                                       class="form-control text-center" min="1" max="99">
-                                            </form>
-                                        </td>
-                                        
-                                        <td class="text-center fw-bold text-danger">
-                                            [[${#numbers.formatDecimal(item.price * item.qty, 0, 'COMMA', 0, 'POINT')}]] ₫
-                                        </td>
-                                        <td class="text-center">
-                                            <a th:href="@{|/cart/remove/${item.id}|}" class="btn btn-outline-danger btn-sm border-0">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <a href="/cart/clear" class="btn btn-outline-danger btn-sm" onclick="return confirm('Bạn muốn xóa hết giỏ hàng?')">
-                                    <i class="bi bi-trash"></i> Xóa tất cả
+                                            </td>
+                                            <td class="text-center text-muted fw-semibold">
+                                                [[${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                            </td>
+                                            <td class="text-center">
+                                                <form action="/cart/update" method="post">
+                                                    <input type="hidden" name="id" th:value="${item.id}">
+                                                    <input type="number" name="qty" th:value="${item.qty}"
+                                                           onchange="this.form.submit()"
+                                                           class="qty-input" min="1" max="99">
+                                                </form>
+                                            </td>
+                                            <td class="text-end fw-bold text-danger">
+                                                [[${#numbers.formatDecimal(item.price * item.qty, 0, 'COMMA', 0, 'POINT')}]] ₫
+                                            </td>
+                                            <td class="text-center">
+                                                <a th:href="@{|/cart/remove/${item.id}|}" class="btn-trash" title="Xóa sản phẩm">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+                                <a href="/home/index" class="text-decoration-none fw-bold text-primary">
+                                    <i class="bi bi-arrow-left me-1"></i> Tiếp tục mua sắm
+                                </a>
+                                <a href="/cart/clear" class="text-danger text-decoration-none small fw-bold" onclick="return confirm('Bạn chắc chắn muốn xóa hết giỏ hàng?')">
+                                    <i class="bi bi-x-circle me-1"></i> Xóa tất cả
                                 </a>
                             </div>
-                            <div class="col-md-6 text-end">
-                                <h4 class="mb-3">
-                                    Tổng cộng: <span class="text-danger fw-bold">[[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
-                                </h4>
-                                <a href="/home/index" class="btn btn-outline-secondary me-2">Tiếp tục mua</a>
-                                <a href="/order/checkout" class="btn btn-primary px-5 fw-bold py-2">
-                                    Tiến hành thanh toán <i class="bi bi-arrow-right"></i>
-                                </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="summary-box shadow-sm">
+                            <h5 class="fw-bold mb-4">Tóm tắt đơn hàng</h5>
+                            
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-secondary">Tạm tính:</span>
+                                <span class="fw-bold">[[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-secondary">Giảm giá:</span>
+                                <span class="text-success fw-bold">-0 ₫</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
+                                <span class="text-secondary">Phí vận chuyển:</span>
+                                <span class="text-success fw-bold">Miễn phí</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fw-bold fs-5">Tổng cộng:</span>
+                                <span class="fw-bold fs-4 text-danger">[[${#numbers.formatDecimal(cart.amount, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                            </div>
+                            
+                            <a href="/order/checkout" class="checkout-btn d-block text-center text-decoration-none">
+                                TIẾN HÀNH THANH TOÁN
+                            </a>
+                            
+                            <div class="mt-4 text-center">
+                                <p class="small text-muted mb-2"><i class="bi bi-shield-lock-fill me-1"></i> Bảo mật thanh toán 100%</p>
+                                <div class="d-flex justify-content-center gap-2 opacity-50">
+                                    <i class="bi bi-credit-card-2-front fs-4"></i>
+                                    <i class="bi bi-paypal fs-4"></i>
+                                    <i class="bi bi-bank fs-4"></i>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,196 +1,236 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{/layout/index :: dynamic(~{::main})}">
-    <head>
-        <style>
-            .hover-effect {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .hover-effect:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-            }
-        </style>
-    </head>
     <body>
         <main>
-            <div class="p-4 p-md-5 mb-4 text-white rounded bg-dark"
-                 style="background: linear-gradient(45deg, #1e3c72, #2a5298);">
-                <div class="col-md-6 px-0">
-                    <h1 class="display-5 fst-italic fw-bold">Siêu Sale Công Nghệ 2026</h1>
-                    <p class="lead my-3">Săn ngay Laptop, iPhone giá sốc. Giảm giá lên đến 50% cho thành viên mới.</p>
-                </div>
-            </div>
+            <style>
+                /* Banner */
+                .hero-banner {
+                    background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%); /* Màu xanh đậm */
+                    border-radius: 20px;
+                    padding: 60px 40px;
+                    color: white;
+                    margin-bottom: 40px;
+                    box-shadow: 0 10px 30px rgba(13, 110, 253, 0.3);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                /* Khung tìm kiếm nổi */
+                .search-container {
+                    background: white;
+                    padding: 25px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+                    margin-top: -60px; /* Đẩy lên đè lên banner */
+                    margin-bottom: 50px;
+                    position: relative;
+                    z-index: 10;
+                    border: 1px solid #f0f0f0;
+                }
+                
+                /* Card Sản phẩm */
+                .product-card {
+                    border: 1px solid #eee;
+                    border-radius: 15px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    background: white;
+                    height: 100%;
+                }
+                .product-card:hover {
+                    transform: translateY(-8px);
+                    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+                    border-color: #bdf;
+                }
+                
+                /* Ảnh sản phẩm chuẩn size */
+                .product-img-wrap {
+                    height: 200px;
+                    width: 100%;
+                    overflow: hidden;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #fff;
+                    padding: 15px;
+                }
+                .product-img {
+                    max-height: 100%;
+                    max-width: 100%;
+                    object-fit: contain; /* Giữ nguyên tỉ lệ ảnh */
+                    transition: transform 0.5s;
+                }
+                .product-card:hover .product-img { transform: scale(1.1); }
+                
+                /* Giá tiền */
+                .price-tag { color: #dc3545; font-weight: 700; font-size: 1.1rem; }
+                .old-price { font-size: 0.9rem; text-decoration: line-through; color: #999; margin-left: 5px; }
+            </style>
             
-            <div class="card shadow-sm mb-5 border-primary">
-                <div class="card-body">
+            <div class="container py-4">
+                
+                <div class="hero-banner">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <span class="badge bg-warning text-dark mb-2 px-3 py-2 rounded-pill">Khuyến mãi HOT</span>
+                            <h1 class="display-4 fw-bold mb-3">Siêu Sale Công Nghệ 2026 🚀</h1>
+                            <p class="lead mb-4 opacity-75">Săn ngay Laptop, iPhone, Phụ kiện giá sốc. Giảm giá lên đến 50% cho thành viên mới.</p>
+                        </div>
+                        <div class="col-md-5 d-none d-md-block text-center">
+                            <i class="bi bi-cart-check-fill" style="font-size: 120px; color: rgba(255,255,255,0.3);"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="search-container">
                     <form action="/product/search" method="get" class="row g-3 align-items-end">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Tên sản phẩm</label>
-                            <input type="text" class="form-control" name="keywords" th:value="${keywords}" placeholder="Nhập tên điện thoại, laptop...">
+                            <label class="form-label fw-bold small text-secondary">TÊN SẢN PHẨM</label>
+                            <input type="text" class="form-control bg-light border-0 py-2" name="keywords" th:value="${keywords}" placeholder="Tìm iPhone, Laptop...">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Khoảng giá</label>
-                            <select class="form-select" name="priceRange">
+                            <label class="form-label fw-bold small text-secondary">KHOẢNG GIÁ</label>
+                            <select class="form-select bg-light border-0 py-2" name="priceRange">
                                 <option value="0">Tất cả mức giá</option>
                                 <option value="1" th:selected="${priceRange == 1}">Dưới 10 triệu</option>
-                                <option value="2" th:selected="${priceRange == 2}">Từ 10 - 20 triệu</option>
+                                <option value="2" th:selected="${priceRange == 2}">10 - 20 triệu</option>
                                 <option value="3" th:selected="${priceRange == 3}">Trên 20 triệu</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Loại hàng</label>
-                            <select class="form-select" name="categoryId">
+                            <label class="form-label fw-bold small text-secondary">LOẠI HÀNG</label>
+                            <select class="form-select bg-light border-0 py-2" name="categoryId">
                                 <option value="">Tất cả loại</option>
-                                <option th:each="c : ${categories}"
-                                        th:value="${c.id}"
-                                        th:text="${c.name}"
-                                        th:selected="${c.id == categoryId}"></option>
+                                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == categoryId}"></option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button type="submit" class="btn btn-warning w-100 fw-bold">
-                                <i class="bi bi-search"></i> TÌM KIẾM
+                            <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">
+                                <i class="bi bi-search me-1"></i> TÌM KIẾM
                             </button>
                         </div>
                     </form>
                 </div>
-            </div>
-            
-            <div th:if="${searchResult != null}">
-                <h3 class="border-bottom pb-2 mb-4 text-uppercase text-primary fw-bold">
-                    <i class="bi bi-search"></i> Kết quả tìm kiếm
-                    <span class="text-muted fs-6">(Tìm thấy [[${searchResult.totalElements}]] sản phẩm)</span>
-                </h3>
                 
-                <div th:if="${searchResult.empty}" class="alert alert-warning text-center">
-                    Không tìm thấy sản phẩm nào phù hợp với từ khóa "<strong>[[${keywords}]]</strong>".
-                    <br> <a href="/home/index" class="btn btn-outline-dark mt-2 btn-sm">Quay lại trang chủ</a>
-                </div>
-                
-                <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
-                    <div class="col" th:each="p : ${searchResult}">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <img th:src="@{|/images/${p.image}|}" class="card-img-top"
-                                 style="height: 200px; object-fit: cover;"
-                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200';">
-                            <div class="card-body">
-                                <h6 class="card-title text-truncate fw-bold">[[${p.name}]]</h6>
-                                <p class="card-text text-danger fw-bold">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</p>
-                            </div>
-                            <div class="card-footer bg-white border-0">
-                                <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-primary w-100 btn-sm">Xem chi tiết</a>
-                            </div>
-                        </div>
+                <div th:if="${searchResult != null}" class="mb-5 animate__animated animate__fadeIn">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold text-primary m-0"><i class="bi bi-search"></i> KẾT QUẢ TÌM KIẾM</h4>
+                        <span class="badge bg-light text-dark border">Tìm thấy [[${searchResult.totalElements}]] sản phẩm</span>
                     </div>
-                </div>
-                
-                <nav th:if="${searchResult.totalPages > 1}" class="mb-5">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item" th:classappend="${searchResult.first} ? 'disabled'">
-                            <a class="page-link"
-                               th:href="@{/product/search(p=${searchResult.number - 1}, keywords=${keywords}, categoryId=${categoryId}, priceRange=${priceRange})}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                        
-                        <li class="page-item disabled">
-                            <span class="page-link fw-bold text-dark">
-                                Trang [[${searchResult.number + 1}]] / [[${searchResult.totalPages}]]
-                            </span>
-                        </li>
-                        
-                        <li class="page-item" th:classappend="${searchResult.last} ? 'disabled'">
-                            <a class="page-link"
-                               th:href="@{/product/search(p=${searchResult.number + 1}, keywords=${keywords}, categoryId=${categoryId}, priceRange=${priceRange})}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                
-                <div class="text-center mb-5" th:if="${!searchResult.empty}">
-                    <a href="/home/index" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Quay lại trang chủ
-                    </a>
-                </div>
-            </div>
-            
-            
-            <div th:if="${searchResult == null}">
-                
-                <h3 class="border-bottom pb-2 mb-4 text-uppercase text-primary fw-bold">
-                    <i class="bi bi-stars text-warning"></i> Hàng Mới Về
-                </h3>
-                <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
-                    <div class="col" th:each="p : ${newProducts}">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="position-relative">
-                                <img th:src="@{|/images/${p.image}|}" class="card-img-top"
-                                     style="height: 200px; object-fit: cover;"
-                                     onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200';">
-                                <span class="position-absolute top-0 end-0 badge bg-success m-2">NEW</span>
-                            </div>
-                            <div class="card-body">
-                                <h6 class="card-title text-truncate fw-bold">[[${p.name}]]</h6>
-                                <p class="card-text text-danger fw-bold">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</p>
-                            </div>
-                            <div class="card-footer bg-white border-0">
-                                <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-outline-primary w-100 btn-sm">Xem chi tiết</a>
-                            </div>
-                        </div>
+                    
+                    <div th:if="${searchResult.empty}" class="text-center py-5 bg-light rounded-3">
+                        <i class="bi bi-box-seam fs-1 text-muted"></i>
+                        <p class="mt-3 text-muted">Không tìm thấy sản phẩm nào phù hợp.</p>
+                        <a href="/home/index" class="btn btn-outline-primary btn-sm mt-2">Xóa bộ lọc</a>
                     </div>
-                </div>
-                
-                <h3 class="border-bottom pb-2 mb-4 text-uppercase text-danger fw-bold">
-                    <i class="bi bi-lightning-fill text-danger"></i> Đang Giảm Giá Sốc
-                </h3>
-                <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
-                    <div class="col" th:each="p : ${saleProducts}">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <div class="position-relative">
-                                <img th:src="@{|/images/${p.image}|}" class="card-img-top"
-                                     style="height: 200px; object-fit: cover;"
-                                     onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200';">
-                                <span class="position-absolute top-0 start-0 badge bg-danger m-2">-15%</span>
-                            </div>
-                            <div class="card-body">
-                                <h6 class="card-title text-truncate fw-bold">[[${p.name}]]</h6>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-danger fw-bold">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
-                                    <small class="text-muted text-decoration-line-through fs-7">[[${#numbers.formatDecimal(p.price * 1.15, 0, 'COMMA', 0, 'POINT')}]] ₫</small>
+                    
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                        <div class="col" th:each="p : ${searchResult}">
+                            <div class="product-card h-100 d-flex flex-column">
+                                <div class="product-img-wrap">
+                                    <img th:src="@{|/images/${p.image}|}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                                </div>
+                                <div class="p-3 d-flex flex-column flex-grow-1">
+                                    <h6 class="text-dark fw-bold text-truncate mb-2">[[${p.name}]]</h6>
+                                    <div class="mt-auto">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="price-tag">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                                        </div>
+                                        <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-outline-primary w-100 rounded-pill btn-sm fw-bold">Chi tiết</a>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-footer bg-white border-0">
-                                <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-danger w-100 btn-sm">Mua ngay</a>
-                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${searchResult.totalPages > 1}" class="mt-4 text-center">
+                        <div class="btn-group shadow-sm" role="group">
+                            <a class="btn btn-light border" th:classappend="${searchResult.first} ? 'disabled'"
+                               th:href="@{/product/search(p=${searchResult.number - 1}, keywords=${keywords}, categoryId=${categoryId}, priceRange=${priceRange})}">Trước</a>
+                            <span class="btn btn-primary disabled border-primary">Trang [[${searchResult.number + 1}]]</span>
+                            <a class="btn btn-light border" th:classappend="${searchResult.last} ? 'disabled'"
+                               th:href="@{/product/search(p=${searchResult.number + 1}, keywords=${keywords}, categoryId=${categoryId}, priceRange=${priceRange})}">Sau</a>
                         </div>
                     </div>
                 </div>
                 
-                <h3 class="border-bottom pb-2 mb-4 text-uppercase text-dark fw-bold">
-                    <i class="bi bi-trophy-fill text-warning"></i> Top Bán Chạy
-                </h3>
-                <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
-                    <div class="col" th:each="p : ${bestSellers}">
-                        <div class="card h-100 shadow-sm border-0 hover-effect">
-                            <img th:src="@{|/images/${p.image}|}" class="card-img-top"
-                                 style="height: 200px; object-fit: cover;"
-                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/300x200';">
-                            <div class="card-body">
-                                <h6 class="card-title text-truncate fw-bold">[[${p.name}]]</h6>
-                                <p class="card-text text-danger fw-bold">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</p>
-                            </div>
-                            <div class="card-footer bg-white border-0">
-                                <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-primary w-100 btn-sm">
-                                    <i class="bi bi-cart-plus"></i> Xem chi tiết
-                                </a>
+                <div th:if="${searchResult == null}">
+                    
+                    <section class="mb-5">
+                        <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                            <h4 class="fw-bold m-0 text-uppercase"><i class="bi bi-stars text-warning me-2"></i> Hàng Mới Về</h4>
+                        </div>
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                            <div class="col" th:each="p : ${newProducts}">
+                                <div class="product-card h-100 position-relative">
+                                    <span class="badge bg-success position-absolute top-0 end-0 m-3 z-1">Mới</span>
+                                    <div class="product-img-wrap">
+                                        <img th:src="@{|/images/${p.image}|}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                                    </div>
+                                    <div class="p-3">
+                                        <h6 class="text-truncate fw-bold mb-2">[[${p.name}]]</h6>
+                                        <div class="price-tag">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</div>
+                                    </div>
+                                    <div class="px-3 pb-3">
+                                        <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-primary w-100 rounded-pill btn-sm">Xem ngay</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
+                    
+                    <section class="mb-5">
+                        <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                            <h4 class="fw-bold m-0 text-uppercase text-danger"><i class="bi bi-lightning-charge-fill me-2"></i> Đang Giảm Giá</h4>
+                        </div>
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                            <div class="col" th:each="p : ${saleProducts}">
+                                <div class="product-card h-100 position-relative border-danger">
+                                    <span class="badge bg-danger position-absolute top-0 start-0 m-3 z-1">-15%</span>
+                                    <div class="product-img-wrap">
+                                        <img th:src="@{|/images/${p.image}|}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                                    </div>
+                                    <div class="p-3">
+                                        <h6 class="text-truncate fw-bold mb-2">[[${p.name}]]</h6>
+                                        <div class="d-flex align-items-center">
+                                            <span class="price-tag text-danger">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                                            <small class="old-price">[[${#numbers.formatDecimal(p.price * 1.15, 0, 'COMMA', 0, 'POINT')}]]đ</small>
+                                        </div>
+                                    </div>
+                                    <div class="px-3 pb-3">
+                                        <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-danger w-100 rounded-pill btn-sm">Mua ngay</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section class="mb-5">
+                        <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                            <h4 class="fw-bold m-0 text-uppercase text-warning"><i class="bi bi-trophy-fill me-2"></i> Top Bán Chạy</h4>
+                        </div>
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                            <div class="col" th:each="p : ${bestSellers}">
+                                <div class="product-card h-100">
+                                    <div class="product-img-wrap">
+                                        <img th:src="@{|/images/${p.image}|}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                                    </div>
+                                    <div class="p-3">
+                                        <h6 class="text-truncate fw-bold mb-2">[[${p.name}]]</h6>
+                                        <div class="price-tag">[[${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}]] ₫</div>
+                                    </div>
+                                    <div class="px-3 pb-3">
+                                        <a th:href="@{|/product/detail/${p.id}|}" class="btn btn-outline-dark w-100 rounded-pill btn-sm">
+                                            <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
-        
         </main>
     </body>
 </html>
